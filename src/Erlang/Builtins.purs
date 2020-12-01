@@ -22,6 +22,52 @@ purs_tco_sucks :: ErlangFun
 purs_tco_sucks _ = ErlangAtom "purs_tco_sucks"
 
 --------------------------------------------------------------------------------
+-- | Returns the inverse hyperbolic cosine of the argument.
+foreign import acosh :: Number -> Number
+
+-- | Returns the inverse hyperbolic sine of the argument.
+foreign import asinh :: Number -> Number
+
+-- | Returns the inverse hyperbolic tangent of the argument.
+foreign import atanh :: Number -> Number
+
+-- | Returns the cube root of the argument.
+foreign import cbrt :: Number -> Number
+
+-- | Returns the number of leading zeroes of a 32-bit integer.
+foreign import clz32 :: Int -> Int
+
+-- | Returns the hyperbolic cosine of the argument.
+foreign import cosh :: Number -> Number
+
+-- | Returns `exp x - 1` for the argument `x`.
+foreign import expm1 :: Number -> Number
+
+-- | Returns the square root of the sum of squares of the arguments.
+foreign import hypot :: Number -> Number -> Number
+
+-- | Returns the square root of the sum of squares of the arguments.
+foreign import hypot3 :: Number -> Number -> Number -> Number
+
+-- | Returns the natural logarithm of `1 + x` for a number `x`.
+foreign import log1p :: Number -> Number
+
+-- | Returns the base 10 logarithm of a number.
+foreign import log10 :: Number -> Number
+
+-- | Returns the base 2 logarithm of a number.
+foreign import log2 :: Number -> Number
+
+-- | Returns the sign of the argument.
+foreign import sign :: Number -> Number
+
+-- | Returns the hyperbolic sine of the argument.
+foreign import sinh :: Number -> Number
+
+-- | Returns the hyperbolic tangent of the argument.
+foreign import tanh :: Number -> Number
+
+--------------------------------------------------------------------------------
 --- Code server OwO
 foreign import do_ffi_remote_fun_call :: String -> String -> Array ErlangTerm -> (Unit -> ErlangTerm) -> ErlangTerm
 do_remote_fun_call :: String -> String -> Array ErlangTerm -> ErlangTerm

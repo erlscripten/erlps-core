@@ -333,7 +333,12 @@ maps__values__1 [m] = EXC.badmap m
 maps__values__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-maps__values__1-}) args
 
 erts_internal__map_next__3 :: ErlangFun
-erts_internal__map_next__3 _ = unimplemented "erts_internal__map_next__3"
+erts_internal__map_next__3 [ErlangInt 0, ErlangMap m, ErlangAtom "iterator"] =
+    case Map.findMin m of
+        DM.Nothing -> ErlangAtom "none"
+        DM.Just ({key: k, value: v}) -> ErlangTuple [k, v, ErlangCons (ErlangInt 0) (ErlangMap $ Map.delete k m)]
+erts_internal__map_next__3 [_, m, _] = EXC.badmap m
+erts_internal__map_next__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erts_internal__map_next__3-}) args
 
 erlang__map_size__1 :: ErlangFun
 erlang__map_size__1 [ErlangMap m] = ErlangInt $ Map.size m

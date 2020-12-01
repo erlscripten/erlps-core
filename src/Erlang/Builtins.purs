@@ -586,23 +586,21 @@ erlang__max__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__max__2-
 erlang__is_integer__1 :: ErlangFun
 erlang__is_integer__1 [ErlangInt _] = ErlangAtom "true"
 erlang__is_integer__1 [_] = ErlangAtom "false"
-erlang__is_integer__1 [_] = EXC.badarg unit
 erlang__is_integer__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_integer__1-}) args
 
 erlang__is_float__1 :: ErlangFun
-erlang__is_float__1 args = unimplemented "erlang__is_float__1"
-erlang__is_float__1 [_] = EXC.badarg unit
+erlang__is_float__1 [ErlangFloat _] = ErlangAtom "true"
+erlang__is_float__1 [_] = ErlangAtom "false"
 erlang__is_float__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_float__1-}) args
 
 erlang__is_binary__1 :: ErlangFun
 erlang__is_binary__1 [ErlangBinary _] = ErlangAtom "true" --FIXME: should return false for bitstrings
 erlang__is_binary__1 [_] = ErlangAtom "false"
-erlang__is_binary__1 [_] = EXC.badarg unit
 erlang__is_binary__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_binary__1-}) args
 
 erlang__is_bitstring__1 :: ErlangFun
-erlang__is_bitstring__1 args = unimplemented "erlang__is_bitstring__1"
-erlang__is_bitstring__1 [_] = EXC.badarg unit
+erlang__is_bitstring__1 [ErlangBinary _] = ErlangAtom "true"
+erlang__is_bitstring__1 [_] = ErlangAtom "false"
 erlang__is_bitstring__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_bitstring__1-}) args
 
 erlang__is_port__1 :: ErlangFun
@@ -623,19 +621,19 @@ erlang__is_record__2 [_,_] = EXC.badarg unit
 erlang__is_record__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__is_record__2-}) args
 
 erlang__is_tuple__1 :: ErlangFun
-erlang__is_tuple__1 args = unimplemented "erlang__is_tuple__1"
-erlang__is_tuple__1 [_] = EXC.badarg unit
+erlang__is_tuple__1 [ErlangTuple _] = ErlangAtom "true"
+erlang__is_tuple__1 [_] = ErlangAtom "false"
 erlang__is_tuple__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_tuple__1-}) args
 
 erlang__is_atom__1 :: ErlangFun
 erlang__is_atom__1 [ErlangAtom _] = ErlangAtom "true"
 erlang__is_atom__1 [_] = ErlangAtom "false"
-erlang__is_atom__1 [_] = EXC.badarg unit
 erlang__is_atom__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_atom__1-}) args
 
 erlang__is_number__1 :: ErlangFun
-erlang__is_number__1 args = unimplemented "erlang__is_number__1"
-erlang__is_number__1 [_] = EXC.badarg unit
+erlang__is_number__1 [ErlangInt _] = ErlangAtom "true"
+erlang__is_number__1 [ErlangFloat _] = ErlangAtom "true"
+erlang__is_number__1 [_] = ErlangAtom "false"
 erlang__is_number__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_number__1-}) args
 
 erlang__is_pid__1 :: ErlangFun
@@ -649,8 +647,8 @@ erlang__is_function__1 [_] = ErlangAtom "false"
 erlang__is_function__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_function__1-}) args
 
 erlang__is_reference__1 :: ErlangFun
-erlang__is_reference__1 args = unimplemented "erlang__is_reference__1"
-erlang__is_reference__1 [_] = EXC.badarg unit
+erlang__is_reference__1 [ErlangReference _] = ErlangAtom "true"
+erlang__is_reference__1 [_] = ErlangAtom "false"
 erlang__is_reference__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_reference__1-}) args
 
 erlang__is_list__1 :: ErlangFun

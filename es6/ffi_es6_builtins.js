@@ -921,7 +921,7 @@ function do_ffi_remote_fun_call(moduleName) {
                 if (module === undefined) {
                     module = module_resolve(moduleName);
                     if(module) {
-                        module = do_onload(ModuleName, module);
+                        module = do_onload(moduleName, module);
                         loaded_code.set(moduleName, module);
                     } else {
                         return undefCallback();

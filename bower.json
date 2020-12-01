@@ -1,32 +1,28 @@
 {
-  "name": "purescript-erlps-core",
-  "license": [
-    "ISC"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/erlscripten/erlps-core"
-  },
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "output"
-  ],
-  "dependencies": {
-    "purescript-arraybuffer": "^v10.0.2",
-    "purescript-bigints": "^v4.0.0",
-    "purescript-console": "^v4.4.0",
-    "purescript-effect": "^v2.0.1",
-    "purescript-integers": "^v4.0.0",
-    "purescript-lists": "^v5.4.1",
-    "purescript-node-buffer": "^v6.0.0",
-    "purescript-psci-support": "^v4.0.0",
-    "purescript-rationals": "^v5.0.0",
-    "purescript-spec": "^v4.0.1",
-    "purescript-math": "git://github.com/minoki/purescript-math.git#es6-functions"
-  },
-  "resolutions": {
-    "purescript-math": "es6-functions"
-  }
+    "name": "purescript-erlps-core",
+    "license": [
+        "ISC"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/erlscripten/erlps-core"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-arraybuffer": "^v10.0.2",
+        "purescript-bigints": "^v4.0.0",
+        "purescript-console": "^v4.4.0",
+        "purescript-effect": "^v2.0.1",
+        "purescript-integers": "^v4.0.0",
+        "purescript-lists": "^v5.4.1",
+        "purescript-node-buffer": "^v6.0.0",
+        "purescript-psci-support": "^v4.0.0",
+        "purescript-rationals": "^v5.0.0",
+        "purescript-spec": "^v4.0.1"
+    }
 }

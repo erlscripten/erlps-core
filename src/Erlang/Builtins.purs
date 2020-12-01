@@ -1415,7 +1415,7 @@ erlang__gather_gc_info_result__1 [_] = EXC.badarg unit
 erlang__gather_gc_info_result__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__gather_gc_info_result__1-}) args
 
 erlang__tuple_size__1 :: ErlangFun
-erlang__tuple_size__1 args = unimplemented "erlang__tuple_size__1"
+erlang__tuple_size__1 [ErlangTuple a] = ErlangInt $ DA.length a
 erlang__tuple_size__1 [_] = EXC.badarg unit
 erlang__tuple_size__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__tuple_size__1-}) args
 

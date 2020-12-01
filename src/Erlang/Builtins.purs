@@ -628,7 +628,8 @@ erlang__is_tuple__1 [_] = EXC.badarg unit
 erlang__is_tuple__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_tuple__1-}) args
 
 erlang__is_atom__1 :: ErlangFun
-erlang__is_atom__1 args = unimplemented "erlang__is_atom__1"
+erlang__is_atom__1 [ErlangAtom _] = ErlangAtom "true"
+erlang__is_atom__1 [_] = ErlangAtom "false"
 erlang__is_atom__1 [_] = EXC.badarg unit
 erlang__is_atom__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_atom__1-}) args
 
@@ -640,12 +641,11 @@ erlang__is_number__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__i
 erlang__is_pid__1 :: ErlangFun
 erlang__is_pid__1 [ErlangPID _] = boolToTerm true
 erlang__is_pid__1 [_] = boolToTerm false
-erlang__is_pid__1 [_] = EXC.badarg unit
 erlang__is_pid__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_pid__1-}) args
 
 erlang__is_function__1 :: ErlangFun
-erlang__is_function__1 args = unimplemented "erlang__is_function__1"
-erlang__is_function__1 [_] = EXC.badarg unit
+erlang__is_function__1 [ErlangFun _ _] = ErlangAtom "true"
+erlang__is_function__1 [_] = ErlangAtom "false"
 erlang__is_function__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_function__1-}) args
 
 erlang__is_reference__1 :: ErlangFun
@@ -665,8 +665,8 @@ erlang__is_map__1 [_] = boolToTerm false
 erlang__is_map__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_map__1-}) args
 
 erlang__is_function__2 :: ErlangFun
-erlang__is_function__2 args = unimplemented "erlang__is_function__2"
-erlang__is_function__2 [_,_] = EXC.badarg unit
+erlang__is_function__2 [ErlangFun a _, ErlangInt b] | a == b = ErlangAtom "true"
+erlang__is_function__2 [_] = ErlangAtom "false"
 erlang__is_function__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__is_function__2-}) args
 
 erlang__is_record__3 :: ErlangFun

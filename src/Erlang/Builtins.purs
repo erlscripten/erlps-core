@@ -4,11 +4,13 @@ import Erlang.Type
 import Erlang.Exception as EXC
 import Erlang.Helpers as H
 import Prelude
+import Data.Tuple as DT
 import Data.Maybe as DM
 import Data.Array as DA
 import Data.List as DL
 import Data.Int as DI
 import Data.Int.Bits as DIB
+import Data.Map as Map
 import Math
 import Control.Monad
 import Effect.Exception (throw)
@@ -253,84 +255,96 @@ erlang__subtract__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__su
 --- MAP BIFS
 
 maps__get__2 :: ErlangFun
-maps__get__2 [] = unimplemented "maps__get__2"
-maps__get__2 [_,_] = EXC.badarg unit
+maps__get__2 [k, ErlangMap m] =
+    case Map.lookup k m of
+        DM.Just v -> v
+        DM.Nothing -> EXC.badkey k
+maps__get__2 [_,m] = EXC.badmap m
 maps__get__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__get__2-}) args
 
 maps__find__2 :: ErlangFun
-maps__find__2 [] = unimplemented "maps__find__2"
-maps__find__2 [_,_] = EXC.badarg unit
+maps__find__2 [k, ErlangMap m] =
+    case Map.lookup k m of
+        DM.Just v -> ErlangTuple [ErlangAtom "ok", v]
+        DM.Nothing -> ErlangAtom "error"
+maps__find__2 [_,m] = EXC.badmap m
 maps__find__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__find__2-}) args
 
 maps__from_list__1 :: ErlangFun
-maps__from_list__1 [] = unimplemented "maps__from_list__1"
+maps__from_list__1 [t] | DM.Just l <- erlangListToList t =
+    ErlangMap (Map.fromFoldable (map (\x ->
+        case x of
+            ErlangTuple [k,v] -> DT.Tuple k v
+            _ -> EXC.badarg unit
+        ) l))
 maps__from_list__1 [_] = EXC.badarg unit
 maps__from_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-maps__from_list__1-}) args
 
 maps__is_key__2 :: ErlangFun
-maps__is_key__2 [] = unimplemented "maps__is_key__2"
-maps__is_key__2 [_,_] = EXC.badarg unit
+maps__is_key__2 [k, ErlangMap m] = boolToTerm $ Map.member k m
+maps__is_key__2 [_,m] = EXC.badmap m
 maps__is_key__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__is_key__2-}) args
 
 maps__keys__1 :: ErlangFun
-maps__keys__1 [] = unimplemented "maps__keys__1"
-maps__keys__1 [_] = EXC.badarg unit
+maps__keys__1 [ErlangMap m] = arrayToErlangList $ DA.fromFoldable $ Map.keys m
+maps__keys__1 [m] = EXC.badmap m
 maps__keys__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-maps__keys__1-}) args
 
 maps__merge__2 :: ErlangFun
-maps__merge__2 [] = unimplemented "maps__merge__2"
-maps__merge__2 [_,_] = EXC.badarg unit
-maps__merge__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__merge__2-}) args
-maps__merge__2 [_,_] = EXC.badarg unit
+maps__merge__2 [ErlangMap m1, ErlangMap m2] = ErlangMap $ Map.union m2 m1
+maps__merge__2 [ErlangMap _, m] = EXC.badmap m
+maps__merge__2 [m, _] = EXC.badmap m
 maps__merge__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__merge__2-}) args
 
 maps__put__3 :: ErlangFun
-maps__put__3 [] = unimplemented "maps__put__3"
-maps__put__3 [_,_,_] = EXC.badarg unit
+maps__put__3 [k, v, ErlangMap m] = ErlangMap $ Map.insert k v m
+maps__put__3 [_,_,m] = EXC.badmap m
 maps__put__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-maps__put__3-}) args
 
 maps__remove__2 :: ErlangFun
-maps__remove__2 [] = unimplemented "maps__remove__2"
-maps__remove__2 [_,_] = EXC.badarg unit
+maps__remove__2 [k, ErlangMap m] = ErlangMap $ Map.delete k m
+maps__remove__2 [_,m] = EXC.badmap m
 maps__remove__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__remove__2-}) args
 
 maps__take__2 :: ErlangFun
-maps__take__2 [] = unimplemented "maps__take__2"
-maps__take__2 [_,_] = EXC.badarg unit
+maps__take__2 [k, ErlangMap m1] =
+    case Map.pop k m1 of
+        DM.Just (DT.Tuple v m2) -> ErlangTuple [v, ErlangMap m2]
+        DM.Nothing -> ErlangAtom "error"
+maps__take__2 [_,m] = EXC.badmap m
 maps__take__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-maps__take__2-}) args
 
 maps__to_list__1 :: ErlangFun
-maps__to_list__1 [] = unimplemented "maps__to_list__1"
-maps__to_list__1 [_] = EXC.badarg unit
+maps__to_list__1 [ErlangMap m] = arrayToErlangList $ map (\(DT.Tuple k v) -> ErlangTuple [k, v]) $ Map.toUnfoldable m
+maps__to_list__1 [m] = EXC.badmap m
 maps__to_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-maps__to_list__1-}) args
 
 maps__update__3 :: ErlangFun
-maps__update__3 [] = unimplemented "maps__update__3"
-maps__update__3 [_,_,_] = EXC.badarg unit
+maps__update__3 [k, v, ErlangMap m] =
+    case Map.lookup k m of
+        DM.Just v -> ErlangMap $ Map.insert k v m
+        DM.Nothing -> EXC.badkey k
+maps__update__3 [_,_,m] = EXC.badmap m
 maps__update__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-maps__update__3-}) args
 
 maps__values__1 :: ErlangFun
-maps__values__1 [] = unimplemented "maps__values__1"
-maps__values__1 [_] = EXC.badarg unit
+maps__values__1 [ErlangMap m] = arrayToErlangList $ DA.fromFoldable $ Map.values m
+maps__values__1 [m] = EXC.badmap m
 maps__values__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-maps__values__1-}) args
 
 erts_internal__map_next__3 :: ErlangFun
 erts_internal__map_next__3 _ = unimplemented "erts_internal__map_next__3"
 
 erlang__map_size__1 :: ErlangFun
-erlang__map_size__1 args = unimplemented "erlang__map_size__1"
-erlang__map_size__1 [_] = EXC.badarg unit
+erlang__map_size__1 [ErlangMap m] = ErlangInt $ Map.size m
+erlang__map_size__1 [m] = EXC.badmap m
 erlang__map_size__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__map_size__1-}) args
 
 erlang__is_map_key__2 :: ErlangFun
-erlang__is_map_key__2 args = unimplemented "erlang__is_map_key__2"
-erlang__is_map_key__2 [_,_] = EXC.badarg unit
-erlang__is_map_key__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__is_map_key__2-}) args
+erlang__is_map_key__2 args = maps__is_key__2 args
 
 erlang__map_get__2 :: ErlangFun
-erlang__map_get__2 args = unimplemented "erlang__map_get__2"
-erlang__map_get__2 [_,_] = EXC.badarg unit
-erlang__map_get__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__map_get__2-}) args
+erlang__map_get__2 args = maps__get__2 args
 
 --------------------------------------------------------------------------------
 --- BINARY AND UNARY OPERATIONS
@@ -641,8 +655,8 @@ erlang__is_list__1 [_] = boolToTerm false
 erlang__is_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_list__1-}) args
 
 erlang__is_map__1 :: ErlangFun
-erlang__is_map__1 args = unimplemented "erlang__is_map__1"
-erlang__is_map__1 [_] = EXC.badarg unit
+erlang__is_map__1 [ErlangMap _] = boolToTerm true
+erlang__is_map__1 [_] = boolToTerm false
 erlang__is_map__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_map__1-}) args
 
 erlang__is_function__2 :: ErlangFun

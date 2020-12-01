@@ -3,3 +3,4 @@ output
 nohup.out
 .idea
 .spago
+bower_components

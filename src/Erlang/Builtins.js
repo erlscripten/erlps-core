@@ -22,6 +22,34 @@ require("core-js/modules/es.function.name");
 
 require("core-js/modules/es.map");
 
+require("core-js/modules/es.math.acosh");
+
+require("core-js/modules/es.math.asinh");
+
+require("core-js/modules/es.math.atanh");
+
+require("core-js/modules/es.math.cbrt");
+
+require("core-js/modules/es.math.clz32");
+
+require("core-js/modules/es.math.cosh");
+
+require("core-js/modules/es.math.expm1");
+
+require("core-js/modules/es.math.hypot");
+
+require("core-js/modules/es.math.log10");
+
+require("core-js/modules/es.math.log1p");
+
+require("core-js/modules/es.math.log2");
+
+require("core-js/modules/es.math.sign");
+
+require("core-js/modules/es.math.sinh");
+
+require("core-js/modules/es.math.tanh");
+
 require("core-js/modules/es.number.constructor");
 
 require("core-js/modules/es.number.is-integer");
@@ -1445,5 +1473,107 @@ exports.do_send_2 = RUNTIME.do_send_2;
 exports.do_self_0 = RUNTIME.do_self_0;
 exports.do_is_process_alive_1 = RUNTIME.do_is_process_alive_1;
 exports.do_spawn_1 = RUNTIME.do_spawn_1;
-exports.do_apply_4 = RUNTIME.do_apply_4;
+exports.do_apply_4 = RUNTIME.do_apply_4; // Missing math functions
+//--------------------------------------------------------------------------------
+
+exports.acosh = Math.acosh || function (x) {
+  return Math.log(x + Math.sqrt(x * x - 1));
+};
+
+exports.asinh = Math.asinh || function (x) {
+  if (x === -Infinity) {
+    return x;
+  } else {
+    return Math.log(x + Math.sqrt(x * x + 1));
+  }
+};
+
+exports.atanh = Math.atanh || function (x) {
+  return Math.log((1 + x) / (1 - x)) / 2;
+};
+
+exports.cbrt = Math.cbrt || function (x) {
+  if (x === 0) {
+    return x; // +0 or -0
+  } else if (x < 0) {
+    return -Math.pow(-x, 1 / 3);
+  } else {
+    return Math.pow(x, 1 / 3);
+  }
+};
+
+exports.clz32 = Math.clz32 || function (x) {
+  if (x === 0) {
+    return 32;
+  }
+
+  return 31 - Math.floor(Math.log(x >>> 0) * Math.LOG2E);
+};
+
+exports.cosh = Math.cosh || function (x) {
+  return (Math.exp(x) + Math.exp(-x)) / 2;
+};
+
+exports.expm1 = Math.expm1 || function (x) {
+  return Math.exp(x) - 1;
+};
+
+exports.hypot = Math.hypot ? function (x) {
+  return function (y) {
+    return Math.hypot(x, y);
+  };
+} : function (x) {
+  return function (y) {
+    return Math.sqrt(x * x + y * y);
+  };
+};
+exports.hypot3 = Math.hypot ? function (x) {
+  return function (y) {
+    return function (z) {
+      return Math.hypot(x, y, z);
+    };
+  };
+} : function (x) {
+  return function (y) {
+    return function (z) {
+      return Math.sqrt(x * x + y * y + z * z);
+    };
+  };
+};
+
+exports.log1p = Math.log1p || function (x) {
+  return Math.log(x + 1);
+};
+
+exports.log10 = Math.log10 || function (x) {
+  return Math.log(x) * Math.LOG10E;
+};
+
+exports.log2 = Math.log2 || function (x) {
+  return Math.log(x) * Math.LOG2E;
+};
+
+exports.sign = Math.sign || function (x) {
+  if (x > 0) {
+    return 1;
+  } else if (x < 0) {
+    return -1;
+  } else {
+    return +x; // +0 or -0 or NaN
+  }
+};
+
+exports.sinh = Math.sinh || function (x) {
+  return (Math.exp(x) - Math.exp(-x)) / 2;
+};
+
+exports.tanh = Math.tanh || function (x) {
+  var ex = Math.exp(2 * x);
+
+  if (ex === Infinity) {
+    return 1;
+  } else {
+    return (ex - 1) / (ex + 1);
+  }
+};
 

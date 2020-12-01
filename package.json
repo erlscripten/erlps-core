@@ -1,0 +1,28 @@
+{
+  "name": "erlps-core",
+  "version": "1.0.0",
+  "description": "ERTS emulation in purescript",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "core-js": "^3.7.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.7",
+    "@babel/preset-env": "^7.12.7"
+  },
+  "scripts": {
+    "babel": "babel es6/ffi_es6_builtins.js > src/Erlang/Builtins.js; babel es6/ffi_es6_invoke.js > src/Erlang/Invoke.js",
+    "test": "spago test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erlscripten/erlps-core.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/erlscripten/erlps-core/issues"
+  },
+  "homepage": "https://github.com/erlscripten/erlps-core#readme"
+}

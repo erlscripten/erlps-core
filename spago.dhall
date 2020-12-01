@@ -5,7 +5,6 @@ You can edit this file as you like.
 { name = "erlps-core"
 , dependencies =
   [ "arraybuffer"
-  , "base58"
   , "bigints"
   , "console"
   , "effect"
@@ -13,10 +12,11 @@ You can edit this file as you like.
   , "lists"
   , "node-buffer"
   , "psci-support"
-  , "purescript-numerics"
   , "rationals"
   , "spec"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
+, license = "ISC"
+, repository = "https://github.com/erlscripten/erlps-core"
 }

@@ -1393,7 +1393,7 @@ var RUNTIME = function () {
             module = module_resolve(moduleName);
 
             if (module) {
-              module = do_onload(ModuleName, module);
+              module = do_onload(moduleName, module);
               loaded_code.set(moduleName, module);
             } else {
               return undefCallback();

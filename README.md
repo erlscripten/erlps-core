@@ -16,4 +16,5 @@ Process emulation relies on ES6 generators - we use babel to transpile our FFI m
 ES6 FFI code should be placed in es6/ and transpiled to es5. 
 1. Install babel - ```npm install```
 2. Transpile ES6 modules - ```npm run babel```
+3. Transpile IO module from erlang - ```make io```
 3. Run tests - ```npm test```

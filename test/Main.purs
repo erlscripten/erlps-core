@@ -180,6 +180,16 @@ main =
             r <- exec_may_throw BIF.erlang__op_unAppend [ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1), mkIntList []]
             make_err `shouldEqual` r
 
+        it "comparators 1" do
+            r1 <- exec_may_throw BIF.erlang__op_lesser [ErlangAtom "asdf", mkInt 0]
+            ErlangAtom "false" `shouldEqualOk` r1
+            r2 <- exec_may_throw BIF.erlang__op_greater [ErlangAtom "asdf", mkInt 0]
+            ErlangAtom "true" `shouldEqualOk` r2
+        it "comparators 2" do
+            r1 <- exec_may_throw BIF.erlang__op_lesser [ErlangAtom "x", mkInt 0]
+            ErlangAtom "false" `shouldEqualOk` r1
+            r2 <- exec_may_throw BIF.erlang__op_greater [ErlangAtom "x", mkInt 0]
+            ErlangAtom "true" `shouldEqualOk` r2
 
         it "[0.1 + 0.2] -- [0.3] == [0.30000000000000004]" do
             lr <- exec_may_throw BIF.erlang__op_plus [ErlangFloat 0.1, ErlangFloat 0.2]

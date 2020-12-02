@@ -1122,5 +1122,3 @@ exports.tanh = Math.tanh || function (x) {
     return (ex - 1) / (ex + 1);
   }
 };
-
-

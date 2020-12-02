@@ -512,11 +512,14 @@ do_unappend _ _ _ = EXC.badarg unit
 
 -- ++
 erlang__op_append :: ErlangFun
-erlang__op_append [ErlangEmptyList, l] = l
-erlang__op_append [ErlangCons h t, l] =
-  ErlangCons h (erlang__op_append [t, l])
+erlang__op_append [l, r] = lists__reverse__2 [lists__reverse__2 [l, ErlangEmptyList], r] -- TODO: Optimize in FFI
 erlang__op_append [_, _] = EXC.badarg unit
 erlang__op_append args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_append-}) args
+
+isCons (ErlangCons _ _) = true
+isCons _ = false
+isEmpty ErlangEmptyList = true
+isEmpty _ = false
 
 -- -
 erlang__op_neg :: ErlangFun

@@ -60,11 +60,11 @@ erlToInt (ErlangInt x) = x
 erlToInt _ = error "bad int"
 
 -- They removed support of it. CodePoint is just a newtype for Int.
-codePointToInt :: StrCP.CodePoint -> DBI.BigInt
+codePointToInt :: StrCP.CodePoint -> Int
 codePointToInt = unsafeCoerce
 
 make_string :: String -> ErlangTerm
-make_string str = arrayToErlangList (map (ErlangInt <<< codePointToInt) (Str.toCodePointArray str))
+make_string str = arrayToErlangList (map (ErlangInt <<< DBI.fromInt <<< codePointToInt) (Str.toCodePointArray str))
 
 flmap :: (Partial => ErlangTerm -> ErlangTerm) -> ErlangTerm -> ErlangTerm
 flmap f list = unsafePartial $ erflat (ermap list ErlangEmptyList) ErlangEmptyList where

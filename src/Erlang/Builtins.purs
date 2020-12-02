@@ -499,15 +499,20 @@ erlang__op_lesser args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_l
 
 -- --
 erlang__op_unAppend :: ErlangFun
-erlang__op_unAppend [ErlangEmptyList, ErlangEmptyList] = ErlangEmptyList
-erlang__op_unAppend [l@(ErlangCons _ _), ErlangEmptyList] = l
-erlang__op_unAppend [ErlangEmptyList, ErlangCons _ _] = ErlangEmptyList
-erlang__op_unAppend [ErlangCons hl tl, r@(ErlangCons hr tr)] =
-  case erlang__op_exactEq [hl, hr] of
-    ErlangAtom "true"  -> erlang__op_unAppend [tl, tr]
-    _                  -> ErlangCons hl (erlang__op_unAppend [tl, r])
+erlang__op_unAppend [l, r] = do_unappend l r ErlangEmptyList
 erlang__op_unAppend [_, _] = EXC.badarg unit
 erlang__op_unAppend args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_unAppend-}) args
+
+do_unappend ErlangEmptyList ErlangEmptyList ErlangEmptyList = ErlangEmptyList
+do_unappend r@(ErlangCons _ _) ErlangEmptyList ErlangEmptyList = r
+do_unappend ErlangEmptyList ErlangEmptyList acc = lists__reverse__2 [acc]
+do_unappend (ErlangCons h t) ErlangEmptyList acc = do_unappend t ErlangEmptyList (ErlangCons h acc)
+do_unappend ErlangEmptyList (ErlangCons _ term) acc = do_unappend (lists__reverse__2 [acc]) term ErlangEmptyList
+do_unappend (ErlangCons hl tl) r@(ErlangCons hr tr) acc =
+      case erlang__op_exactEq [hl, hr] of
+        ErlangAtom "true"  -> do_unappend tl tr acc
+        _                  -> do_unappend tl r (ErlangCons hl acc)
+do_unappend _ _ _ = EXC.badarg unit
 
 -- ++
 erlang__op_append :: ErlangFun

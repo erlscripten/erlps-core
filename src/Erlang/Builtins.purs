@@ -227,12 +227,12 @@ lists__keyfind__3 [_,_,_] = EXC.badarg unit
 lists__keyfind__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-lists__keyfind__3-}) args
 
 erlang__hd__1 :: ErlangFun
-erlang__hd__1 args = unimplemented "erlang__hd__1"
+erlang__hd__1 [ErlangCons h _] = h
 erlang__hd__1 [_] = EXC.badarg unit
 erlang__hd__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__hd__1-}) args
 
 erlang__tl__1 :: ErlangFun
-erlang__tl__1 args = unimplemented "erlang__tl__1"
+erlang__tl__1 [ErlangCons _ t] = t
 erlang__tl__1 [_] = EXC.badarg unit
 erlang__tl__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__tl__1-}) args
 

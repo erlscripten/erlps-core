@@ -12,6 +12,7 @@ import Data.Int as DI
 import Data.Int.Bits as DIB
 import Data.Map as Map
 import Data.BigInt as DBI
+import Data.Number.Approximate as DNA
 import Math
 import Control.Monad
 import Effect.Exception (throw)
@@ -361,16 +362,16 @@ erlang__map_get__2 args = maps__get__2 args
 
 -- =/=
 erlang__op_exactNeq :: ErlangFun
-erlang__op_exactNeq [ErlangInt i, ErlangFloat f] = boolToTerm (DBI.toNumber i /= f)
-erlang__op_exactNeq [ErlangFloat f, ErlangInt i] = boolToTerm (DBI.toNumber i /= f)
+erlang__op_exactNeq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
+erlang__op_exactNeq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
 erlang__op_exactNeq [a, b] = boolToTerm (a /= b)  -- FIXME (funs)
 erlang__op_exactNeq [_, _] = EXC.badarg unit
 erlang__op_exactNeq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_exactNeq-}) args
 
 -- =:=
 erlang__op_exactEq :: ErlangFun
-erlang__op_exactEq [ErlangInt i, ErlangFloat f] = boolToTerm (DBI.toNumber i == f)
-erlang__op_exactEq [ErlangFloat f, ErlangInt i] = boolToTerm (DBI.toNumber i == f)
+erlang__op_exactEq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
+erlang__op_exactEq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
 erlang__op_exactEq [a, b] = boolToTerm (a == b) -- FIXME (funs)
 erlang__op_exactEq [_, _] = EXC.badarg unit
 erlang__op_exactEq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_exactEq-}) args

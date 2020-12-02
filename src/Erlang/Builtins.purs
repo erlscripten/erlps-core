@@ -176,10 +176,10 @@ erlang__float__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__float
 -- LISTS BIFS
 
 lists__keysearch__3 :: ErlangFun
-lists__keysearch__3 [_, _, ErlangEmptyList] = boolToTerm false
+lists__keysearch__3 [_, ErlangInt bidxNum, ErlangEmptyList] | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = boolToTerm false
 lists__keysearch__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum = case el of
-  ErlangTuple tup | DM.Just x <- DA.index tup idxNum  ->
+  | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = case el of
+  ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
     case erlang__op_exactEq [x, key] of
       ErlangAtom "true" -> (ErlangTuple [ErlangAtom "value", el])
       _                 -> lists__keysearch__3 [key, idx, rest]
@@ -188,11 +188,10 @@ lists__keysearch__3 [_,_,_] = EXC.badarg unit
 lists__keysearch__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-lists__keysearch__3-}) args
 
 lists__keymember__3 :: ErlangFun
-lists__keymember__3 [_, _, ErlangEmptyList] = boolToTerm false
+lists__keymember__3 [_, ErlangInt bidxNum, ErlangEmptyList] | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = boolToTerm false
 lists__keymember__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum =
+  | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0  =
     case el of
-      _ | idxNum < 1 -> EXC.badarg unit
       ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
         case erlang__op_exactEq [x, key] of
           ErlangAtom "true" -> ErlangAtom "true"
@@ -217,10 +216,10 @@ lists__member__2 [_,_] = EXC.badarg unit
 lists__member__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-lists__member__2-}) args
 
 lists__keyfind__3 :: ErlangFun
-lists__keyfind__3 [_, _, ErlangEmptyList] = boolToTerm false
+lists__keyfind__3 [_, ErlangInt bidxNum, ErlangEmptyList] | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = boolToTerm false
 lists__keyfind__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum = case el of
-  ErlangTuple tup | DM.Just x <- DA.index tup idxNum  ->
+  | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = case el of
+  ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
     case erlang__op_exactEq [x, key] of
       ErlangAtom "true" -> el
       _                 -> lists__keyfind__3 [key, idx, rest]

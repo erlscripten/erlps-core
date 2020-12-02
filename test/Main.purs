@@ -25,11 +25,13 @@ import Data.Either
 import Data.Tuple as T
 import Data.Array as A
 import Data.Maybe as M
+import Data.BigInt as DBI
 import Partial.Unsafe
 import Erlang.Type
 import Erlang.Exception
 import Erlang.Builtins as BIF
 import Erlang.Invoke
+import Erlang.Helpers as H
 import Node.Buffer as Buf
 
 -- BEWARE - HERE BE DRAGONS - I've lost too many hours debugging alternative helpers
@@ -49,7 +51,7 @@ wololo_term :: Error -> ErlangTerm
 wololo_term res = unsafeCoerce res
 
 wololo_codepoint :: Partial => ErlangTerm -> StrCP.CodePoint
-wololo_codepoint (ErlangInt res) = unsafeCoerce res
+wololo_codepoint (ErlangInt res) = unsafeCoerce $ unsafePartial $ M.fromJust $ H.bigIntToInt res
 
 print_err (Right r) = show r
 print_err (Left e) =
@@ -91,7 +93,7 @@ lift_aff_to_erlang_process calc = do
                             AVar.put res res_channel
                         )
                     in
-                       ErlangInt 1))]
+                       ErlangInt $ DBI.fromInt 1))]
             -- At this point we never yielded so the process MUST be alive
             pid <- unpack_ok packed_pid
             AVar.put pid pid_channel

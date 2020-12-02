@@ -531,6 +531,9 @@ erlang__op_not [ErlangAtom "true"] = ErlangAtom "false"
 erlang__op_not [_] = EXC.badarg unit
 erlang__op_not args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__op_not-}) args
 
+erlang__not__1 :: ErlangFun
+erlang__not__1 args = erlang__op_not args
+
 erlang__bor__2 :: ErlangFun
 erlang__bor__2 [ErlangInt a, ErlangInt b] = ErlangInt $ DBI.or a b
 erlang__bor__2 [_,_] = EXC.badarg unit
@@ -1512,11 +1515,6 @@ erlang__delete_element__2 :: ErlangFun
 erlang__delete_element__2 args = unimplemented "erlang__delete_element__2"
 erlang__delete_element__2 [_,_] = EXC.badarg unit
 erlang__delete_element__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__delete_element__2-}) args
-
-erlang__not__1 :: ErlangFun
-erlang__not__1 args = unimplemented "erlang__not__1"
-erlang__not__1 [_] = EXC.badarg unit
-erlang__not__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__not__1-}) args
 
 erlang__round__1 :: ErlangFun
 erlang__round__1 args = unimplemented "erlang__round__1"

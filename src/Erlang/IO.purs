@@ -24,6 +24,7 @@ import Data.List as DL
 import Data.Maybe as DM
 import Data.Map as Map
 import Data.Tuple as Tup
+import Data.BigInt as DBI
 import Erlang.Builtins as BIF
 import Erlang.Binary as BIN
 import Erlang.Helpers
@@ -32,6 +33,7 @@ import Erlang.Type (ErlangFun, ErlangTerm(..))
 import Effect (Effect)
 import Effect.Unsafe (unsafePerformEffect)
 import Effect.Exception (throw)
+import Partial.Unsafe (unsafePartial)
 
 
 erlps__to_tuple__1 :: ErlangFun
@@ -144,7 +146,7 @@ erlps__columns__1 [io_0] =
   in let case_1 = (erlps__request__2 [io_0, arg_3])
   in
     case case_1 of
-      n_6 | ((isENum n_6) && (n_6 > (ErlangInt 0))) ->
+      n_6 | ((isENum n_6) && (n_6 > (ErlangInt (DBI.fromInt 0)))) ->
         (ErlangTuple [(ErlangAtom "ok"), n_6])
       _ -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "enotsup")])
       something_else -> (EXC.case_clause something_else)
@@ -165,7 +167,7 @@ erlps__rows__1 [io_0] =
   in let case_1 = (erlps__request__2 [io_0, arg_3])
   in
     case case_1 of
-      n_6 | ((isENum n_6) && (n_6 > (ErlangInt 0))) ->
+      n_6 | ((isENum n_6) && (n_6 > (ErlangInt (DBI.fromInt 0)))) ->
         (ErlangTuple [(ErlangAtom "ok"), n_6])
       _ -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "enotsup")])
       something_else -> (EXC.case_clause something_else)
@@ -183,7 +185,7 @@ erlps__get_chars__2 args =
 
 erlps__get_chars__3 :: ErlangFun
 erlps__get_chars__3 [io_0, prompt_1, n_2]
-  | ((isENum n_2) && (n_2 >= (ErlangInt 0))) =
+  | ((isENum n_2) && (n_2 >= (ErlangInt (DBI.fromInt 0)))) =
   let
     arg_4 =
       (ErlangTuple [(ErlangAtom "get_chars"), (ErlangAtom "unicode"), prompt_1, n_2])
@@ -285,19 +287,22 @@ erlps__read__2 [io_0, prompt_1] =
     arg_4 =
       (ErlangTuple
          [(ErlangAtom "get_until"), (ErlangAtom "unicode"), prompt_1, (ErlangAtom "erl_scan"),
-          (ErlangAtom "tokens"), (ErlangCons (ErlangInt 1) ErlangEmptyList)])
+          (ErlangAtom "tokens"),
+          (ErlangCons (ErlangInt (DBI.fromInt 1)) ErlangEmptyList)])
   in let case_2 = (erlps__request__2 [io_0, arg_4])
   in
     case case_2 of
       (ErlangTuple [(ErlangAtom "ok"), toks_13, _endline_14]) ->
-        case (ErlangInt 2) of
-          (ErlangInt 1) -> (ErlangInt 2)
-          _ -> (EXC.badmatch (ErlangInt 2))
-      (ErlangTuple [(ErlangAtom "error"), e_18, _endline_19]) ->
-        (ErlangTuple [(ErlangAtom "error"), e_18])
-      (ErlangTuple [(ErlangAtom "eof"), _endline_22]) -> (ErlangAtom "eof")
-      other_23 -> other_23
-erlps__read__2 [arg_24, arg_25] = (EXC.function_clause unit)
+        case (ErlangInt (DBI.fromInt 2)) of
+          (ErlangInt num_17) | ((ErlangInt num_17) ==
+                                  (ErlangInt (DBI.fromInt 1))) ->
+            (ErlangInt (DBI.fromInt 2))
+          _ -> (EXC.badmatch (ErlangInt (DBI.fromInt 2)))
+      (ErlangTuple [(ErlangAtom "error"), e_19, _endline_20]) ->
+        (ErlangTuple [(ErlangAtom "error"), e_19])
+      (ErlangTuple [(ErlangAtom "eof"), _endline_23]) -> (ErlangAtom "eof")
+      other_24 -> other_24
+erlps__read__2 [arg_25, arg_26] = (EXC.function_clause unit)
 erlps__read__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
 
@@ -320,15 +325,17 @@ erlps__read__4 [io_0, prompt_1, pos0_2, options_3] =
   in
     case case_9 of
       (ErlangTuple [(ErlangAtom "ok"), toks_18, endlocation_19]) ->
-        case (ErlangInt 2) of
-          (ErlangInt 1) -> (ErlangInt 2)
-          _ -> (EXC.badmatch (ErlangInt 2))
-      error_25@(ErlangTuple [(ErlangAtom "error"), _e_23,
-                             _endlocation_24]) ->
-        error_25
-      eof_27@(ErlangTuple [(ErlangAtom "eof"), _endlocation_26]) -> eof_27
-      other_28 -> other_28
-erlps__read__4 [arg_29, arg_30, arg_31, arg_32] =
+        case (ErlangInt (DBI.fromInt 2)) of
+          (ErlangInt num_22) | ((ErlangInt num_22) ==
+                                  (ErlangInt (DBI.fromInt 1))) ->
+            (ErlangInt (DBI.fromInt 2))
+          _ -> (EXC.badmatch (ErlangInt (DBI.fromInt 2)))
+      error_26@(ErlangTuple [(ErlangAtom "error"), _e_24,
+                             _endlocation_25]) ->
+        error_26
+      eof_28@(ErlangTuple [(ErlangAtom "eof"), _endlocation_27]) -> eof_28
+      other_29 -> other_29
+erlps__read__4 [arg_30, arg_31, arg_32, arg_33] =
   (EXC.function_clause unit)
 erlps__read__4 args =
   (EXC.badarity (ErlangFun 4 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)

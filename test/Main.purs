@@ -170,6 +170,17 @@ main =
         it "-- 8" do
             r <- exec_may_throw BIF.erlang__op_unAppend [mkFloatList [2.0], mkFloatList [2.0]]
             mkIntList [] `shouldEqualOk` r
+        it "-- 9" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [2], ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1)]
+            make_err `shouldEqual` r
+        it "-- 10" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [], ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1)]
+            make_err `shouldEqual` r
+        it "-- 11" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1), mkIntList []]
+            make_err `shouldEqual` r
+
+
         it "[0.1 + 0.2] -- [0.3] == [0.30000000000000004]" do
             lr <- exec_may_throw BIF.erlang__op_plus [ErlangFloat 0.1, ErlangFloat 0.2]
             l <- unpack_ok lr
@@ -189,6 +200,15 @@ main =
             -- true = lists:keymember({1.0}, 1, [{{1}}])
             r <- exec_may_throw BIF.lists__keymember__3 [mkFloatList [1.0], mkInt 1, ErlangCons (ErlangTuple [mkIntList [1]]) ErlangEmptyList]
             ErlangAtom "true" `shouldEqualOk` r
+
+        it "lists__keyfind__3 float 1" do
+            -- {1} = lists:keyfind(1.0, 1, [{1}])
+            r <- exec_may_throw BIF.lists__keyfind__3 [ErlangFloat 1.0, mkInt 1, ErlangCons (ErlangTuple [mkInt 1]) ErlangEmptyList]
+            ErlangTuple [mkInt 1] `shouldEqualOk` r
+        it "lists__keysearch__3 float 1" do
+            -- {value, {1}} = lists:keysearch(1.0, 1, [{1}])
+            r <- exec_may_throw BIF.lists__keysearch__3 [ErlangFloat 1.0, mkInt 1, ErlangCons (ErlangTuple [mkInt 1]) ErlangEmptyList]
+            ErlangTuple [ErlangAtom "value", ErlangTuple [mkInt 1]] `shouldEqualOk` r
 
         it "reverse/2 1" do
             let a = mkIntList [1,2,3,4,5]

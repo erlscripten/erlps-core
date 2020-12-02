@@ -495,6 +495,11 @@ erlang__op_lesser args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_l
 
 -- --
 erlang__op_unAppend :: ErlangFun
+erlang__op_unAppend [l, ErlangEmptyList] = -- This needs to throw an exception for inproper lists .-.
+    let
+        a = lists__reverse__2 [l, ErlangEmptyList]
+    in
+        l
 erlang__op_unAppend [l, r] = do_unappend l r ErlangEmptyList
 erlang__op_unAppend [_, _] = EXC.badarg unit
 erlang__op_unAppend args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_unAppend-}) args

@@ -190,12 +190,14 @@ lists__keysearch__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-lists__key
 lists__keymember__3 :: ErlangFun
 lists__keymember__3 [_, _, ErlangEmptyList] = boolToTerm false
 lists__keymember__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum = case el of
-  ErlangTuple tup | DM.Just x <- DA.index tup idxNum  ->
-    case erlang__op_exactEq [x, key] of
-      ErlangAtom "true" -> ErlangAtom "true"
-      _                 -> lists__keymember__3 [key, idx, rest]
-  _ -> lists__keymember__3 [key, idx, rest]
+  | DM.Just idxNum <- H.bigIntToInt bidxNum =
+    case el of
+      _ | idxNum < 1 -> EXC.badarg unit
+      ErlangTuple tup | DM.Just x <- DA.index tup idxNum  ->
+        case erlang__op_exactEq [x, key] of
+          ErlangAtom "true" -> ErlangAtom "true"
+          _                 -> lists__keymember__3 [key, idx, rest]
+      _ -> lists__keymember__3 [key, idx, rest]
 lists__keymember__3 [_,_,_] = EXC.badarg unit
 lists__keymember__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-lists__keymember__3-}) args
 

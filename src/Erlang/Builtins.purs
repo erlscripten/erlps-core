@@ -242,12 +242,11 @@ erlang__append__2 [_,_] = EXC.badarg unit
 erlang__append__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__append__2-}) args
 
 erlang__length__1 :: ErlangFun
-erlang__length__1 [ErlangEmptyList] = ErlangInt (DBI.fromInt 0)
-erlang__length__1 [ErlangCons _ t] =
-    case erlang__length__1 [t] of
-      ErlangInt tl -> ErlangInt $ tl + (DBI.fromInt 1)
-      _ -> EXC.badarg unit
-erlang__length__1 [_] = EXC.badarg unit
+erlang__length__1 [l] =
+  let go ErlangEmptyList acc = ErlangInt (DBI.fromInt acc)
+      go (ErlangCons _ t) acc = go t (acc + 1)
+      go _ _ = EXC.badarg unit
+  in go l 0
 erlang__length__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__length__1-}) args
 
 erlang__subtract__2 :: ErlangFun

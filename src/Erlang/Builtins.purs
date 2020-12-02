@@ -407,20 +407,6 @@ erlang__op_or [ErlangAtom "false", ErlangAtom "false"] = boolToTerm false
 erlang__op_or [_, _] = EXC.badarg unit
 erlang__op_or args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_or-}) args
 
--- andalso
-erlang__op_andalso :: ErlangFun
-erlang__op_andalso [ErlangAtom "true", other] = other
-erlang__op_andalso [ErlangAtom "false", _] = boolToTerm false
-erlang__op_andalso [_, _] = EXC.badarg unit
-erlang__op_andalso args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_andalso-}) args
-
--- orelse
-erlang__op_orelse :: ErlangFun
-erlang__op_orelse [ErlangAtom "true", _] = boolToTerm true
-erlang__op_orelse [ErlangAtom "false", other] = other
-erlang__op_orelse [_, _] = EXC.badarg unit
-erlang__op_orelse args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_orelse-}) args
-
 -- /
 erlang__op_div :: ErlangFun
 erlang__op_div [ErlangInt a, ErlangInt b] = ErlangInt (a / b)

@@ -80,7 +80,7 @@ compareErlangTermImpl (ErlangReference a) (ErlangReference b) = compare a b
 compareErlangTermImpl (ErlangPID a) (ErlangPID b) = compare a b
 compareErlangTermImpl (ErlangAtom a) (ErlangAtom b) = compare a b
 compareErlangTermImpl (ErlangCons ha ta) (ErlangCons hb tb) =
-  -- heads MUST NOT be compared by recursive call
+  -- heads MUST NOT be compared by recursive call until PS fixes TCO
   case compare ha hb of
     EQ -> compareErlangTermImpl ta tb
     res -> res
@@ -105,9 +105,9 @@ compareErlangTermImpl   (ErlangMap _)       _ = GT
 compareErlangTermImpl   (ErlangTuple _)     _ = GT
 compareErlangTermImpl   (ErlangFun _ _)     _ = GT
 compareErlangTermImpl   (ErlangAtom _)      _ = GT
-compareErlangTermImpl   (ErlangPID _)       _ = LT
-compareErlangTermImpl   (ErlangReference _) _ = LT
-compareErlangTermImpl   (ErlangFloat _)     _ = LT
+compareErlangTermImpl   (ErlangPID _)       _ = GT
+compareErlangTermImpl   (ErlangReference _) _ = GT
+compareErlangTermImpl   (ErlangFloat _)     _ = GT
 compareErlangTermImpl   (ErlangInt _)       _ = GT
 
 compareErlangTermImpl _ (ErlangInt _)         = LT

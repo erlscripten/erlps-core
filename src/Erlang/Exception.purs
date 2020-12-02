@@ -6,7 +6,7 @@ module Erlang.Exception
   , raise
   , throw, error, exit
   , function_clause, case_clause, try_clause, if_clause
-  , badarity, badmatch, badarg, badrecord, bad_generator, badmap, badkey
+  , badarity, badmatch, badarg, badarg1, badrecord, bad_generator, badmap, badkey
   ) where
 
 import Prelude
@@ -82,6 +82,9 @@ badmatch term = error (ErlangTuple [ErlangAtom "badmatch", term])
 
 badarg :: forall a. Unit -> a
 badarg _ = error (ErlangAtom "badarg")
+
+badarg1 :: forall a. ErlangTerm -> a
+badarg1 term = error (ErlangTuple [ErlangAtom "badarg", term])
 
 badarity :: ErlangTerm -> Array ErlangTerm -> ErlangTerm
 badarity fun args =

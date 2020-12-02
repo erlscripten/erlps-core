@@ -193,7 +193,7 @@ lists__keymember__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
   | DM.Just idxNum <- H.bigIntToInt bidxNum =
     case el of
       _ | idxNum < 1 -> EXC.badarg unit
-      ErlangTuple tup | DM.Just x <- DA.index tup idxNum  ->
+      ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
         case erlang__op_exactEq [x, key] of
           ErlangAtom "true" -> ErlangAtom "true"
           _                 -> lists__keymember__3 [key, idx, rest]

@@ -181,7 +181,7 @@ lists__keysearch__3 [_, ErlangInt bidxNum, ErlangEmptyList] | DM.Just idxNum <- 
 lists__keysearch__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
   | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = case el of
   ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
-    case erlang__op_exactEq [x, key] of
+    case erlang__op_eq [x, key] of
       ErlangAtom "true" -> (ErlangTuple [ErlangAtom "value", el])
       _                 -> lists__keysearch__3 [key, idx, rest]
   _ -> lists__keysearch__3 [key, idx, rest]
@@ -194,7 +194,7 @@ lists__keymember__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
   | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0  =
     case el of
       ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
-        case erlang__op_exactEq [x, key] of
+        case erlang__op_eq [x, key] of
           ErlangAtom "true" -> ErlangAtom "true"
           _                 -> lists__keymember__3 [key, idx, rest]
       _ -> lists__keymember__3 [key, idx, rest]
@@ -221,7 +221,7 @@ lists__keyfind__3 [_, ErlangInt bidxNum, ErlangEmptyList] | DM.Just idxNum <- H.
 lists__keyfind__3 [key, idx@(ErlangInt bidxNum), ErlangCons el rest]
   | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 = case el of
   ErlangTuple tup | DM.Just x <- DA.index tup (idxNum-1)  ->
-    case erlang__op_exactEq [x, key] of
+    case erlang__op_eq [x, key] of
       ErlangAtom "true" -> el
       _                 -> lists__keyfind__3 [key, idx, rest]
   _ -> lists__keyfind__3 [key, idx, rest]
@@ -239,9 +239,7 @@ erlang__tl__1 [_] = EXC.badarg unit
 erlang__tl__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__tl__1-}) args
 
 erlang__append__2 :: ErlangFun
-erlang__append__2 args = unimplemented "erlang__append__2"
-erlang__append__2 [_,_] = EXC.badarg unit
-erlang__append__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__append__2-}) args
+erlang__append__2 args = erlang__op_append args
 
 erlang__length__1 :: ErlangFun
 erlang__length__1 [l] =
@@ -362,30 +360,28 @@ erlang__map_get__2 args = maps__get__2 args
 
 -- =/=
 erlang__op_exactNeq :: ErlangFun
-erlang__op_exactNeq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
-erlang__op_exactNeq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
 erlang__op_exactNeq [a, b] = boolToTerm (a /= b)  -- FIXME (funs)
 erlang__op_exactNeq [_, _] = EXC.badarg unit
 erlang__op_exactNeq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_exactNeq-}) args
 
 -- =:=
 erlang__op_exactEq :: ErlangFun
-erlang__op_exactEq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
-erlang__op_exactEq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
 erlang__op_exactEq [a, b] = boolToTerm (a == b) -- FIXME (funs)
 erlang__op_exactEq [_, _] = EXC.badarg unit
 erlang__op_exactEq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_exactEq-}) args
 
 -- /=
 erlang__op_neq :: ErlangFun
+erlang__op_neq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
+erlang__op_neq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
 erlang__op_neq [a, b] = boolToTerm (a /= b) -- FIXME (funs, floats)
-erlang__op_neq [_, _] = EXC.badarg unit
-erlang__op_neq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_neq-}) args
 erlang__op_neq [_, _] = EXC.badarg unit
 erlang__op_neq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_neq-}) args
 
 -- ==
 erlang__op_eq :: ErlangFun
+erlang__op_eq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
+erlang__op_eq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
 erlang__op_eq [a, b] = boolToTerm (a == b) -- FIXME (funs, floats)
 erlang__op_eq [_, _] = EXC.badarg unit
 erlang__op_eq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_eq-}) args
@@ -510,7 +506,7 @@ do_unappend (ErlangCons h t) ErlangEmptyList acc = do_unappend t ErlangEmptyList
 do_unappend ErlangEmptyList (ErlangCons _ term) acc = do_unappend (lists__reverse__2 [acc, ErlangEmptyList]) term ErlangEmptyList
 do_unappend (ErlangCons hl tl) r@(ErlangCons hr tr) acc =
       case erlang__op_exactEq [hl, hr] of
-        ErlangAtom "true"  -> do_unappend tl tr acc
+        ErlangAtom "true"  -> do_unappend (lists__reverse__2 [acc, tl]) tr ErlangEmptyList
         _                  -> do_unappend tl r (ErlangCons hl acc)
 do_unappend _ _ _ = EXC.badarg unit
 

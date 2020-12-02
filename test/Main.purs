@@ -111,6 +111,14 @@ lift_aff_to_erlang_process calc = do
 
 make_ok term = ErlangTuple [ErlangAtom "ok", term]
 make_err = ErlangAtom "error"
+mkInt :: Int -> ErlangTerm
+mkInt = DBI.fromInt >>> ErlangInt
+
+mkIntList :: Array Int -> ErlangTerm
+mkIntList a = arrayToErlangList $ map mkInt a
+
+mkFloatList :: Array Number -> ErlangTerm
+mkFloatList a = arrayToErlangList $ map ErlangFloat a
 
 unpack_ok :: ErlangTerm -> Aff ErlangTerm
 unpack_ok (ErlangTuple [ErlangAtom "ok", term]) = pure term
@@ -136,3 +144,70 @@ main =
             1 `shouldEqual` 1
         it "two should equal two" do
             2 `shouldEqual` 2
+
+    describe "Operators" do
+        it "-- 1" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [ErlangEmptyList, ErlangEmptyList]
+            ErlangEmptyList `shouldEqualOk` r
+        it "-- 2" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [1,2,3], mkIntList [1,2,3]]
+            mkIntList [] `shouldEqualOk` r
+        it "-- 3" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [1,2,3], mkIntList []]
+            mkIntList [1,2,3] `shouldEqualOk` r
+        it "-- 4" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [1,2,3], mkIntList [2]]
+            mkIntList [1,3] `shouldEqualOk` r
+        it "-- 5" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [1,2,3], mkIntList [2,1]]
+            mkIntList [3] `shouldEqualOk` r
+        it "-- 6" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [1,2,3], mkIntList [20]]
+            mkIntList [1,2,3] `shouldEqualOk` r
+        it "-- 7" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkIntList [2], mkFloatList [2.0]]
+            mkIntList [2] `shouldEqualOk` r
+        it "-- 8" do
+            r <- exec_may_throw BIF.erlang__op_unAppend [mkFloatList [2.0], mkFloatList [2.0]]
+            mkIntList [] `shouldEqualOk` r
+        it "[0.1 + 0.2] -- [0.3] == [0.30000000000000004]" do
+            lr <- exec_may_throw BIF.erlang__op_plus [ErlangFloat 0.1, ErlangFloat 0.2]
+            l <- unpack_ok lr
+            rr <- exec_may_throw BIF.erlang__op_unAppend [ErlangCons l ErlangEmptyList, mkFloatList [2.0]]
+            r <- unpack_ok rr
+            rr <- exec_may_throw BIF.erlang__length__1 [r]
+            mkInt 1 `shouldEqualOk` rr
+        it "lists__keymember__3 float 1" do
+            -- true = lists:keymember(1.0, 1, [{1}])
+            r <- exec_may_throw BIF.lists__keymember__3 [ErlangFloat 1.0, mkInt 1, ErlangCons (ErlangTuple [mkInt 1]) ErlangEmptyList]
+            ErlangAtom "true" `shouldEqualOk` r
+        it "lists__keymember__3 float 2" do
+            -- true = lists:keymember({1.0}, 1, [{{1}}])
+            r <- exec_may_throw BIF.lists__keymember__3 [ErlangTuple [ErlangFloat 1.0], mkInt 1, ErlangCons (ErlangTuple [ErlangTuple [mkInt 1]]) ErlangEmptyList]
+            ErlangAtom "true" `shouldEqualOk` r
+        it "lists__keymember__3 float 3" do
+            -- true = lists:keymember({1.0}, 1, [{{1}}])
+            r <- exec_may_throw BIF.lists__keymember__3 [mkFloatList [1.0], mkInt 1, ErlangCons (ErlangTuple [mkIntList [1]]) ErlangEmptyList]
+            ErlangAtom "true" `shouldEqualOk` r
+
+        it "reverse/2 1" do
+            let a = mkIntList [1,2,3,4,5]
+            let b = mkIntList []
+            r <- exec_may_throw BIF.lists__reverse__2 [a, b]
+            mkIntList [5,4,3,2,1] `shouldEqualOk` r
+        it "reverse/2 2" do
+            let a = mkIntList [1,2,3,4,5]
+            let b = mkIntList [6,7,8,9,10]
+            r <- exec_may_throw BIF.lists__reverse__2 [a, b]
+            mkIntList [5,4,3,2,1,6,7,8,9,10] `shouldEqualOk` r
+
+        it "++ 1" do
+            let a = mkIntList [1,2,3,4,5]
+            let b = mkIntList []
+            r <- exec_may_throw BIF.erlang__op_append [a, b]
+            mkIntList [1,2,3,4,5] `shouldEqualOk` r
+        it "++ 2" do
+            let a = mkIntList [1,2,3,4,5]
+            let b = mkIntList [6,7,8,9,10]
+            r <- exec_may_throw BIF.erlang__op_append [a, b]
+            mkIntList [1,2,3,4,5,6,7,8,9,10] `shouldEqualOk` r

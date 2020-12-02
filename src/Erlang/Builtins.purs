@@ -680,7 +680,7 @@ erlang__is_map__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_m
 
 erlang__is_function__2 :: ErlangFun
 erlang__is_function__2 [ErlangFun a _, ErlangInt b] | DBI.fromInt a == b = ErlangAtom "true"
-erlang__is_function__2 [_] = ErlangAtom "false"
+erlang__is_function__2 [_, _] = ErlangAtom "false"
 erlang__is_function__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__is_function__2-}) args
 
 erlang__is_record__3 :: ErlangFun

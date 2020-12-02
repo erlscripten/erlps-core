@@ -11,7 +11,7 @@ module Erlang.Exception
 
 import Prelude
 import Erlang.Type
-import Erlang.Helpers
+--import Erlang.Helpers
 
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -20,7 +20,7 @@ buildException :: String -> ErlangTerm -> String -> ErlangTerm
 buildException exType exPayload exStack = ErlangTuple
   [ ErlangAtom exType
   , exPayload
-  , make_string exStack
+  , ErlangAtom exStack
   ]
 
 foreign import raise :: forall a. ErlangTerm -> a

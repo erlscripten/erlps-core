@@ -1,10 +1,12 @@
 module Erlang.Helpers where
 
 import Erlang.Type
+import Erlang.Exception as EXC
 import Control.Monad
 import Data.Maybe as DM
 import Data.List as DL
 import Data.Array as DA
+import Data.Map as Map
 import Data.String as Str
 import Data.BigInt as DBI
 import Data.Int as DI
@@ -79,3 +81,8 @@ flmap f list = unsafePartial $ erflat (ermap list ErlangEmptyList) ErlangEmptyLi
 
 bigIntToInt :: DBI.BigInt -> DM.Maybe Int
 bigIntToInt = DBI.toNumber >>> DI.fromNumber
+
+findMissingKey :: ErlangTerm -> Array ErlangTerm -> DM.Maybe ErlangTerm
+findMissingKey (ErlangMap m) keys =
+  DA.find (\key -> not (Map.member key m)) keys
+findMissingKey t _ = DM.Just (EXC.badmap t)

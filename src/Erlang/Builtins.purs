@@ -103,6 +103,13 @@ erlang__make_fun__3 [m@(ErlangAtom _), f@(ErlangAtom _), ErlangInt barity]
 erlang__make_fun__3 [_,_,_] = EXC.badarg unit
 erlang__make_fun__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__make_fun__3-}) args
 
+foreign import do_function_exported_3 :: String -> String -> Int -> Boolean
+erlang__function_exported__3 :: ErlangFun
+erlang__function_exported__3 [ErlangAtom m, ErlangAtom f, ErlangInt ar] | DM.Just arity <- H.bigIntToInt ar =
+    boolToTerm $ do_function_exported_3 m f arity
+erlang__function_exported__3 [_,_,_] = EXC.badarg unit
+erlang__function_exported__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__function_exported__3-}) args
+
 --------------------------------------------------------------------------------
 --- FLOAT BIFS
 
@@ -1126,11 +1133,6 @@ erlang__split_binary__2 :: ErlangFun
 erlang__split_binary__2 args = unimplemented "erlang__split_binary__2"
 erlang__split_binary__2 [_,_] = EXC.badarg unit
 erlang__split_binary__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__split_binary__2-}) args
-
-erlang__function_exported__3 :: ErlangFun
-erlang__function_exported__3 args = unimplemented "erlang__function_exported__3"
-erlang__function_exported__3 [_,_,_] = EXC.badarg unit
-erlang__function_exported__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__function_exported__3-}) args
 
 erlang__phash__2 :: ErlangFun
 erlang__phash__2 args = unimplemented "erlang__phash__2"

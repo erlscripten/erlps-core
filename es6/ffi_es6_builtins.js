@@ -836,18 +836,45 @@ class ProcessSystem {
 var system = new ProcessSystem();
 var loaded_code = new Map();
 
+function atom_to_function_name(name, arity) {
+    return "erlps__" + name + "__" + arity;
+}
+
+function atom_to_module_name(name) {
+    return name.split('_').map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join('.')
+}
+
 /* FFI CODE */
 function do_apply_4(moduleName) {
         return function(functionName) {
             return function(argumentArray) {
                 return function(failCallback) {
-                    var mName = moduleName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-                    var fName = "erlps__" + functionName + "__" + argumentArray.length;
+                    //FIXME: BIFS
+                    var mName = atom_to_module_name(moduleName);
+                    var fName = atom_to_function_name(functionName, argumentArray.length);
                     return do_ffi_remote_fun_call(mName)(fName)(argumentArray)(failCallback);
                 };
             };
         };
     };
+
+function do_function_exported_3(moduleName) {
+    return function(functionName) {
+        return function(arity) {
+            // FIXME: BIFS
+            var mName = atom_to_module_name(moduleName);
+            var fName = atom_to_function_name(functionName, arity);
+            var module = loaded_code.get(mName);
+            if (module) {
+                var f = module[fName];
+                if (f)
+                    return true;
+                return false;
+            }
+            return false;
+        }
+    }
+}
 
 function do_onload(name, module) {
     var f = module["onload"];
@@ -1108,6 +1135,7 @@ function do_erase_1(cmp) {
         do_get_keys_1: do_get_keys_1,
         do_erase_0: do_erase_0,
         do_erase_1: do_erase_1,
+        do_function_exported_3: do_function_exported_3,
         system: system
     };
 
@@ -1129,6 +1157,7 @@ exports.do_get_keys_0 = RUNTIME.do_get_keys_0;
 exports.do_get_keys_1 = RUNTIME.do_get_keys_1;
 exports.do_erase_0 = RUNTIME.do_erase_0;
 exports.do_erase_1 = RUNTIME.do_erase_1;
+exports.do_function_exported_3 = RUNTIME.do_function_exported_3;
 
 // Missing math functions
 //--------------------------------------------------------------------------------

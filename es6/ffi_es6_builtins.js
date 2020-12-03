@@ -943,6 +943,7 @@ function get_erlang_module() {
 function do_ffi_ensure_loaded(moduleName) {
     return function(nofile) {
         return function(success) {
+            moduleName = atom_to_module_name(moduleName);
             var module = loaded_code.get(moduleName);
             if (module === undefined) {
                 module = module_resolve(moduleName);
@@ -962,7 +963,6 @@ function do_ffi_remote_fun_call(moduleName) {
     return function(functionName) {
         return function(argumentArray) {
             return function(undefCallback) {
-                moduleName = atom_to_module_name(moduleName);
                 var module = loaded_code.get(moduleName);
                 if (module === undefined) {
                     module = module_resolve(moduleName);

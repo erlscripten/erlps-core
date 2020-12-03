@@ -1421,6 +1421,7 @@ var RUNTIME = function () {
   function do_ffi_ensure_loaded(moduleName) {
     return function (nofile) {
       return function (success) {
+        moduleName = atom_to_module_name(moduleName);
         var module = loaded_code.get(moduleName);
 
         if (module === undefined) {

@@ -7,8 +7,10 @@ import Prelude
 import Data.Tuple as DT
 import Data.Maybe as DM
 import Data.Array as DA
+import Data.Array.NonEmpty as DAN
 import Data.List as DL
 import Data.Int as DI
+import Data.UInt as DU
 import Data.Int.Bits as DIB
 import Data.Map as Map
 import Data.BigInt as DBI
@@ -18,6 +20,7 @@ import Control.Monad
 import Effect.Exception (throw)
 import Effect
 import Effect.Unsafe
+import Partial.Unsafe
 
 unimplemented :: String -> ErlangTerm
 unimplemented name = unsafePerformEffect (throw $ "unimplemented BIF: " <> name)
@@ -1146,10 +1149,88 @@ erlang__split_binary__2 args = unimplemented "erlang__split_binary__2"
 erlang__split_binary__2 [_,_] = EXC.badarg unit
 erlang__split_binary__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__split_binary__2-}) args
 
+-- https://github.com/erlang/otp/blob/ec6e0a3d1ca4e38deee26aee15bb762ee1f86a0a/erts/emulator/beam/bif.c#L5061
 erlang__phash__2 :: ErlangFun
-erlang__phash__2 args = unimplemented "erlang__phash__2"
+erlang__phash__2 [term, ErlangInt range] =
+    ErlangInt $ finalize_hash range $ unsignedToBigInt $ (make_hash term (DU.fromInt 0))
 erlang__phash__2 [_,_] = EXC.badarg unit
 erlang__phash__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__phash__2-}) args
+
+finalize_hash range res = (DBI.fromInt 1) + (res `mod` range)
+
+unsignedToBigInt :: DU.UInt -> DBI.BigInt
+unsignedToBigInt x =
+    case DU.toInt x of
+        a | a >= 0 -> DBI.fromInt a
+        a -> (DBI.shl (DBI.fromInt 1) 32.0) + (DBI.fromInt a)
+
+c_FUNNY_NUMBER1  = DU.fromInt 268440163
+c_FUNNY_NUMBER2  = DU.fromInt 268439161
+c_FUNNY_NUMBER3  = DU.fromInt 268435459
+c_FUNNY_NUMBER4  = DU.fromInt 268436141
+c_FUNNY_NUMBER5  = DU.fromInt 268438633
+c_FUNNY_NUMBER6  = DU.fromInt 268437017
+c_FUNNY_NUMBER7  = DU.fromInt 268438039
+c_FUNNY_NUMBER8  = DU.fromInt 268437511
+c_FUNNY_NUMBER9  = DU.fromInt 268439627
+c_FUNNY_NUMBER10 = DU.fromInt 268440479
+c_FUNNY_NUMBER11 = DU.fromInt 268440577
+c_FUNNY_NUMBER12 = DU.fromInt 268440581
+c_FUNNY_NUMBER13 = DU.fromInt 268440593
+c_FUNNY_NUMBER14 = DU.fromInt 268440611
+
+-- https://github.com/erlang/otp/blob/ec6e0a3d1ca4e38deee26aee15bb762ee1f86a0a/erts/emulator/beam/utils.c#L815
+make_hash :: ErlangTerm -> DU.UInt -> DU.UInt
+make_hash (ErlangInt n) hash =
+    let
+        { isNegative: isNeg, value: bytes } = DBI.digitsInBase 256 n
+        h1 = DA.foldl (\acc el -> acc*c_FUNNY_NUMBER2 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
+    in
+        case isNeg of
+            true -> h1 * c_FUNNY_NUMBER4
+            false -> h1 * c_FUNNY_NUMBER3
+make_hash (ErlangPID n) hash =
+    let
+        { isNegative: _, value: bytes } = DBI.digitsInBase 256 (DBI.fromInt n)
+        h1 = DA.foldl (\acc el -> acc*c_FUNNY_NUMBER5 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
+    in
+        h1 * c_FUNNY_NUMBER6
+make_hash (ErlangReference n) hash =
+    let
+        { isNegative: _, value: bytes } = DBI.digitsInBase 256 (DBI.fromInt n)
+        h1 = DA.foldl (\acc el -> acc*c_FUNNY_NUMBER9 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
+    in
+        h1 * c_FUNNY_NUMBER10
+
+--make_hash (ErlangAtom a) hash =
+--    hash * c_FUNNY_NUMBER1 + (DU.fromInt 0) -- TODO: figure out how erlang hashes atoms...
+
+--make_hash (ErlangFloat a) hash = ...
+--make_hash (ErlangBinary a) hash = ...
+
+make_hash (ErlangTuple t) hash =
+    (DA.foldl (\acc el -> make_hash el acc) hash t) * c_FUNNY_NUMBER9 + (DU.fromInt (DA.length t))
+
+make_hash ErlangEmptyList hash = hash * c_FUNNY_NUMBER3 + (DU.fromInt 1)
+
+make_hash (ErlangCons (ErlangInt n) t@(ErlangCons _ _)) hash | n < DBI.fromInt 256, DM.Just i <- H.bigIntToInt n =
+    make_hash t (hash*c_FUNNY_NUMBER2 + (DU.fromInt i))
+make_hash (ErlangCons (ErlangInt n) t) hash | n < DBI.fromInt 256, DM.Just i <- H.bigIntToInt n =
+    (make_hash t (hash*c_FUNNY_NUMBER2 + (DU.fromInt i))) * c_FUNNY_NUMBER8
+make_hash (ErlangCons h t@(ErlangCons _ _)) hash =
+    make_hash t (make_hash h hash)
+make_hash (ErlangCons h t) hash =
+    (make_hash t (make_hash h hash)) * c_FUNNY_NUMBER8
+
+make_hash _ _ =
+    let
+        a = EXC.badarg unit
+    in
+        (DU.fromInt 1)
+
+pad_arr :: DAN.NonEmptyArray Int -> DAN.NonEmptyArray Int
+pad_arr a | DAN.length a < 4 = pad_arr (DAN.cons 0 a)
+          | otherwise = a
 
 erlang__dist_ctrl_put_data__2 :: ErlangFun
 erlang__dist_ctrl_put_data__2 args = unimplemented "erlang__dist_ctrl_put_data__2"

@@ -119,6 +119,9 @@ mkInt = DBI.fromInt >>> ErlangInt
 mkIntList :: Array Int -> ErlangTerm
 mkIntList a = arrayToErlangList $ map mkInt a
 
+mkBInt s = ErlangInt $ unsafePartial $ M.fromJust $ DBI.fromString s
+get2to32 = mkBInt "4294967296"
+
 mkFloatList :: Array Number -> ErlangTerm
 mkFloatList a = arrayToErlangList $ map ErlangFloat a
 
@@ -333,4 +336,78 @@ main =
             mkInt 30 `shouldEqualOk` r24
             r25 <- exec_may_throw BIF.erlang__erase__0 []
             arrayToErlangList [ErlangTuple [mkInt 3, mkInt 30]] `shouldEqualOk` r25
-            
+
+    describe "Hashing..." do
+        it "phash/2 - empty list" do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangEmptyList, get2to32]
+            mkInt 2 `shouldEqualOk` r
+        it "phash/2 - number 0" do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkInt 0, get2to32]
+            mkInt 1 `shouldEqualOk` r
+        it "phash/2 - number 1" do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkInt 1, get2to32]
+            mkBInt "2788898428" `shouldEqualOk` r
+        it "phash/2 - number 12345678" do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkBInt "12345678", get2to32]
+            mkBInt "71480002" `shouldEqualOk` r
+        it "phash/2 - number -12345678" do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkBInt "-12345678", get2to32]
+            mkBInt "752010448" `shouldEqualOk` r
+        it "phash/2 - number 11111111111111111111111111111" do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkBInt "11111111111111111111111111111", get2to32]
+            mkBInt "1065806199" `shouldEqualOk` r
+        it "phash/2 - number -11111111111111111111111111111" do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkBInt "-11111111111111111111111111111", get2to32]
+            mkBInt "1051343595" `shouldEqualOk` r
+        it "phash/2 - tuple {}" do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangTuple [], get2to32]
+            mkBInt "1" `shouldEqualOk` r
+        it "erlang:phash({1,2,3}, 1 bsl 32)" do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangTuple [mkInt 1, mkInt 2, mkInt 3], get2to32]
+            mkBInt "4267354534" `shouldEqualOk` r
+        it "erlang:phash({1,2,3,{1,2},{},4}, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangTuple [mkInt 1, mkInt 2, mkInt 3, ErlangTuple [mkInt 1, mkInt 2], ErlangTuple [], mkInt 4], get2to32]
+            mkBInt "1228626870" `shouldEqualOk` r
+        it "erlang:phash([1,2,3], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [mkInt 1, mkInt 2, mkInt 3], get2to32]
+            mkBInt "3336869158" `shouldEqualOk` r
+        it "erlang:phash([1], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [mkInt 1], get2to32]
+            mkBInt "2952798237" `shouldEqualOk` r
+        it "erlang:phash([{}], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [ErlangTuple []], get2to32]
+            mkBInt "268437512" `shouldEqualOk` r
+        it "erlang:phash([{},{},{}], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [ErlangTuple [], ErlangTuple [], ErlangTuple []], get2to32]
+            mkBInt "268437512" `shouldEqualOk` r
+        it "erlang:phash([{},{},{},[]], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [ErlangTuple [], ErlangTuple [], ErlangTuple [], ErlangEmptyList], get2to32]
+            mkBInt "2952798237" `shouldEqualOk` r
+        it "erlang:phash([1000,2000,3000,4000], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [mkInt 1000, mkInt 2000, mkInt 3000, mkInt 4000], get2to32]
+            mkBInt "225899384" `shouldEqualOk` r
+        it "erlang:phash(asdf, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangAtom "asdf", get2to32]
+            mkBInt "428455" `shouldEqualOk` r
+        it "erlang:phash(begwrrew, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangAtom "begwrrew", get2to32]
+            mkBInt "200187464" `shouldEqualOk` r
+        it "erlang:phash(1.0, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangFloat 1.0, get2to32]
+            mkBInt "1072693249" `shouldEqualOk` r
+        it "erlang:phash(0.0, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangFloat 0.0, get2to32]
+            mkBInt "1" `shouldEqualOk` r
+        it "erlang:phash(1337.1337, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangFloat 1337.1337, get2to32]
+            mkBInt "2821978480" `shouldEqualOk` r
+        it "erlang:phash([1|2], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangCons (mkInt 1) (mkInt 2), get2to32]
+            mkBInt "2402949552" `shouldEqualOk` r
+        it "erlang:phash([{1,2},2,{3,4},1.0,test,{test}], 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [arrayToErlangList [ErlangTuple [mkInt 1, mkInt 2], mkInt 2, ErlangTuple [mkInt 3, mkInt 4], ErlangFloat 1.0, ErlangAtom "test", ErlangTuple [ErlangAtom "test"]], get2to32]
+            mkBInt "1005103067" `shouldEqualOk` r
+        it "erlang:phash(200, 1337)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [mkInt 200, mkInt 1337]
+            mkBInt "521" `shouldEqualOk` r
+

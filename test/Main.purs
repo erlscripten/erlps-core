@@ -112,6 +112,7 @@ lift_aff_to_erlang_process calc = do
 
 make_ok term = ErlangTuple [ErlangAtom "ok", term]
 make_err = ErlangAtom "error"
+
 mkInt :: Int -> ErlangTerm
 mkInt = DBI.fromInt >>> ErlangInt
 
@@ -145,6 +146,39 @@ main =
             1 `shouldEqual` 1
         it "two should equal two" do
             2 `shouldEqual` 2
+
+    describe "Comparator" do
+        let nassert f x = do
+              r <- exec_may_throw f x
+              ErlangAtom "false" `shouldEqualOk` r
+        let assert f x = do
+              r <- exec_may_throw f x
+              ErlangAtom "true" `shouldEqualOk` r
+        it "1 == 1" $ assert BIF.erlang__op_eq [mkInt 1, mkInt 1]
+        it "1 =:= 1" $ assert BIF.erlang__op_exactEq [mkInt 1, mkInt 1]
+        it "1 /= 1" $ nassert BIF.erlang__op_neq [mkInt 1, mkInt 1]
+        it "1 =/= 1" $ nassert BIF.erlang__op_exactNeq [mkInt 1, mkInt 1]
+        it "1.0 == 1.0" $ assert BIF.erlang__op_eq [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1.0 =:= 1.0" $ assert BIF.erlang__op_exactEq [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1.0 /= 1.0" $ nassert BIF.erlang__op_neq [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1.0 =/= 1.0" $ nassert BIF.erlang__op_exactNeq [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1 == 1.0" $ assert BIF.erlang__op_eq [mkInt 1, ErlangFloat 1.0]
+        it "1 =:= 1.0" $ nassert BIF.erlang__op_exactEq [mkInt 1, ErlangFloat 1.0]
+        it "1 /= 1.0" $ nassert BIF.erlang__op_neq [mkInt 1, ErlangFloat 1.0]
+        it "1 =/= 1.0" $ assert BIF.erlang__op_exactNeq [mkInt 1, ErlangFloat 1.0]
+
+        it "1 < 1" $ nassert BIF.erlang__op_lesser [mkInt 1, mkInt 1]
+        it "1 > 1" $ nassert BIF.erlang__op_greater [mkInt 1, mkInt 1]
+        it "1 =< 1" $ assert BIF.erlang__op_lesserEq [mkInt 1, mkInt 1]
+        it "1 >= 1" $ assert BIF.erlang__op_greaterEq [mkInt 1, mkInt 1]
+        it "1.0 < 1.0" $ nassert BIF.erlang__op_lesser [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1.0 > 1.0" $ nassert BIF.erlang__op_greater [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1.0 =< 1.0" $ assert BIF.erlang__op_lesserEq [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1.0 >= 1.0" $ assert BIF.erlang__op_greaterEq [ErlangFloat 1.0, ErlangFloat 1.0]
+        it "1 < 1.0" $ nassert BIF.erlang__op_lesser [mkInt 1, ErlangFloat 1.0]
+        it "1 > 1.0" $ nassert BIF.erlang__op_greater [mkInt 1, ErlangFloat 1.0]
+        it "1 =< 1.0" $ assert BIF.erlang__op_lesserEq [mkInt 1, ErlangFloat 1.0]
+        it "1 >= 1.0" $ assert BIF.erlang__op_greaterEq [mkInt 1, ErlangFloat 1.0]
 
     describe "Operators" do
         it "-- 1" do

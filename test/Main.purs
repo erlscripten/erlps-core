@@ -34,7 +34,6 @@ import Erlang.Builtins as BIF
 import Erlang.Invoke
 import Erlang.Helpers as H
 import Node.Buffer as Buf
-import CoDoKurwy
 
 -- BEWARE - HERE BE DRAGONS - I've lost too many hours debugging alternative helpers
 -- If you think you can make a better wrapper which does not crash the testing infrastructure then please make a PR
@@ -243,9 +242,3 @@ main =
             let b = mkIntList [6,7,8,9,10]
             r <- exec_may_throw BIF.erlang__op_append [a, b]
             mkIntList [1,2,3,4,5,6,7,8,9,10] `shouldEqualOk` r
-
-    describe "Co do kurwy" do
-      it "dupa" do
-        wtf `shouldEqual` lol
-      it "chuj" do
-        Map.member (ErlangAtom "b") wtf `shouldEqual` Map.member (ErlangAtom "b") lol

@@ -169,17 +169,28 @@ compareErlangTerm numCmp (ErlangMap m1) (ErlangMap m2) =
     EQ -> compareArraysWith (compareErlangTerm numCmp) values1 values2
     res -> res
 
-compareErlangTerm _ (ErlangBinary _)    _ = GT
-compareErlangTerm _ (ErlangCons _ _)    _ = GT
-compareErlangTerm _ (ErlangEmptyList)   _ = GT
-compareErlangTerm _ (ErlangMap _)       _ = GT
-compareErlangTerm _ (ErlangTuple _)     _ = GT
-compareErlangTerm _ (ErlangFun _ _)     _ = GT
-compareErlangTerm _ (ErlangAtom _)      _ = GT
-compareErlangTerm _ (ErlangPID _)       _ = GT
-compareErlangTerm _ (ErlangReference _) _ = GT
-compareErlangTerm _ (ErlangFloat _)     _ = GT
-compareErlangTerm _ (ErlangInt _)       _ = GT
+compareErlangTerm _   (ErlangBinary _)    _ = GT
+compareErlangTerm _ _ (ErlangBinary _)      = LT
+compareErlangTerm _   (ErlangCons _ _)    _ = GT
+compareErlangTerm _ _ (ErlangCons _ _)      = LT
+compareErlangTerm _   (ErlangEmptyList)   _ = GT
+compareErlangTerm _ _ (ErlangEmptyList)     = LT
+compareErlangTerm _   (ErlangMap _)       _ = GT
+compareErlangTerm _ _ (ErlangMap _)         = LT
+compareErlangTerm _   (ErlangTuple _)     _ = GT
+compareErlangTerm _ _ (ErlangTuple _)       = LT
+compareErlangTerm _   (ErlangFun _ _)     _ = GT
+compareErlangTerm _ _ (ErlangFun _ _)       = LT
+compareErlangTerm _   (ErlangAtom _)      _ = GT
+compareErlangTerm _ _ (ErlangAtom _)        = LT
+compareErlangTerm _   (ErlangPID _)       _ = GT
+compareErlangTerm _ _ (ErlangPID _)         = LT
+compareErlangTerm _   (ErlangReference _) _ = GT
+compareErlangTerm _ _ (ErlangReference _)   = LT
+compareErlangTerm _   (ErlangFloat _)     _ = GT
+compareErlangTerm _ _ (ErlangFloat _)       = LT
+compareErlangTerm _   (ErlangInt _)       _ = GT
+compareErlangTerm _ _ (ErlangInt _)         = LT
 
 
 compareErlangTermTCOBreak

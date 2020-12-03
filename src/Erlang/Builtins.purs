@@ -1352,11 +1352,6 @@ erlang__check_process_code__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-
 erlang__system_monitor__0 :: ErlangFun
 erlang__system_monitor__0 args = unimplemented "erlang__system_monitor__0"
 
-erlang__phash2__2 :: ErlangFun
-erlang__phash2__2 args = unimplemented "erlang__phash2__2"
-erlang__phash2__2 [_,_] = EXC.badarg unit
-erlang__phash2__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__phash2__2-}) args
-
 erlang__bitsize__1 :: ErlangFun
 erlang__bitsize__1 args = unimplemented "erlang__bitsize__1"
 erlang__bitsize__1 [_] = EXC.badarg unit
@@ -1926,9 +1921,14 @@ erlang__dt_put_tag__1 [_] = EXC.badarg unit
 erlang__dt_put_tag__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__dt_put_tag__1-}) args
 
 erlang__phash2__1 :: ErlangFun
-erlang__phash2__1 args = unimplemented "erlang__phash2__1"
+erlang__phash2__1 [a] = erlang__phash2__2 [a, ErlangInt $ DBI.fromInt 268435456]  "-- FIXME
 erlang__phash2__1 [_] = EXC.badarg unit
 erlang__phash2__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__phash2__1-}) args
+
+erlang__phash2__2 :: ErlangFun
+erlang__phash2__2 args = erlang__op_minus [erlang__phash__2 args, ErlangInt $ DBI.fromInt 1] -- FIXME
+erlang__phash2__2 [_,_] = EXC.badarg unit
+erlang__phash2__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__phash2__2-}) args
 
 erlang__spawn__4 :: ErlangFun
 erlang__spawn__4 args = unimplemented "erlang__spawn__4"

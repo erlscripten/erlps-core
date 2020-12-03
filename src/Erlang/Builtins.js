@@ -1418,6 +1418,26 @@ var RUNTIME = function () {
     return bif_module;
   }
 
+  function do_ffi_ensure_loaded(moduleName) {
+    return function (nofile) {
+      return function (success) {
+        var module = loaded_code.get(moduleName);
+
+        if (module === undefined) {
+          module = module_resolve(moduleName);
+
+          if (module) {
+            module = do_onload(moduleName, module);
+            loaded_code.set(moduleName, module);
+            return success;
+          } else {
+            return nofile;
+          }
+        }
+      };
+    };
+  }
+
   function do_ffi_remote_fun_call(moduleName) {
     return function (functionName) {
       return function (argumentArray) {
@@ -1705,6 +1725,7 @@ var RUNTIME = function () {
   }
 
   return {
+    do_ffi_ensure_loaded: do_ffi_ensure_loaded,
     do_ffi_remote_fun_call: do_ffi_remote_fun_call,
     do_make_ref_0: do_make_ref_0,
     do_receive_2: do_receive_2,
@@ -1726,6 +1747,7 @@ var RUNTIME = function () {
 }();
 
 exports.do_ffi_remote_fun_call = RUNTIME.do_ffi_remote_fun_call;
+exports.do_ffi_ensure_loaded = RUNTIME.do_ffi_ensure_loaded;
 exports.system = RUNTIME.system;
 exports.do_make_ref_0 = RUNTIME.do_make_ref_0;
 exports.do_receive_2 = RUNTIME.do_receive_2;

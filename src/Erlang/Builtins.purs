@@ -78,6 +78,12 @@ do_remote_fun_call :: String -> String -> Array ErlangTerm -> ErlangTerm
 do_remote_fun_call mName fName args =
     do_ffi_remote_fun_call mName fName args (\_ -> EXC.error $ ErlangAtom "undef")
 
+foreign import do_ffi_ensure_loaded :: String -> ErlangTerm -> ErlangTerm -> ErlangTerm
+do_ensure_loaded :: String -> ErlangTerm
+do_ensure_loaded mName = do_ffi_ensure_loaded mName
+                         (ErlangTuple [ErlangAtom "error", ErlangAtom "nofile"])
+                         (ErlangTuple [ErlangAtom "module", ErlangAtom mName])
+
 erlang__apply__2 :: ErlangFun
 erlang__apply__2 [ft@(ErlangFun arity f), args0] | ErlangTuple args1 <- erlang__list_to_tuple__1 [args0] =
     case (DA.length args1) == arity of

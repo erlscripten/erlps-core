@@ -75,15 +75,16 @@ erlps__o_request__3 [io_0, request_1, func_2] =
                                               (ErlangCons _current_25 mfas_26)])]) ->
                     let    arg_29 = (erlps__conv_reason__2 [func_2, reason_6])
                     in let
-                      tail_33 =
+                      head_33 =
                         (ErlangTuple
                            [(ErlangAtom "io"), func_2, (ErlangCons io_0 args_10)])
                     in
                       (BIF.erlang__raise__3
-                         [(ErlangAtom "error"), arg_29, (ErlangCons tail_33 mfas_26)])
+                         [(ErlangAtom "error"), arg_29, (ErlangCons head_33 mfas_26)])
                   _ -> (EXC.badmatch match_expr_27)
             _ -> (EXC.badmatch match_expr_11)
       other_40 -> other_40
+      something_else -> (EXC.case_clause something_else)
 erlps__o_request__3 [arg_41, arg_42, arg_43] =
   (EXC.function_clause unit)
 erlps__o_request__3 args =
@@ -146,7 +147,7 @@ erlps__columns__1 [io_0] =
   in let case_1 = (erlps__request__2 [io_0, arg_3])
   in
     case case_1 of
-      n_6 | ((isENum n_6) && (n_6 > (ErlangInt (DBI.fromInt 0)))) ->
+      n_6 | ((isEInt n_6) && (n_6 > (ErlangInt (DBI.fromInt 0)))) ->
         (ErlangTuple [(ErlangAtom "ok"), n_6])
       _ -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "enotsup")])
       something_else -> (EXC.case_clause something_else)
@@ -167,7 +168,7 @@ erlps__rows__1 [io_0] =
   in let case_1 = (erlps__request__2 [io_0, arg_3])
   in
     case case_1 of
-      n_6 | ((isENum n_6) && (n_6 > (ErlangInt (DBI.fromInt 0)))) ->
+      n_6 | ((isEInt n_6) && (n_6 > (ErlangInt (DBI.fromInt 0)))) ->
         (ErlangTuple [(ErlangAtom "ok"), n_6])
       _ -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "enotsup")])
       something_else -> (EXC.case_clause something_else)
@@ -185,7 +186,7 @@ erlps__get_chars__2 args =
 
 erlps__get_chars__3 :: ErlangFun
 erlps__get_chars__3 [io_0, prompt_1, n_2]
-  | ((isENum n_2) && (n_2 >= (ErlangInt (DBI.fromInt 0)))) =
+  | ((isEInt n_2) && (n_2 >= (ErlangInt (DBI.fromInt 0)))) =
   let
     arg_4 =
       (ErlangTuple [(ErlangAtom "get_chars"), (ErlangAtom "unicode"), prompt_1, n_2])
@@ -302,6 +303,7 @@ erlps__read__2 [io_0, prompt_1] =
         (ErlangTuple [(ErlangAtom "error"), e_19])
       (ErlangTuple [(ErlangAtom "eof"), _endline_23]) -> (ErlangAtom "eof")
       other_24 -> other_24
+      something_else -> (EXC.case_clause something_else)
 erlps__read__2 [arg_25, arg_26] = (EXC.function_clause unit)
 erlps__read__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -335,6 +337,7 @@ erlps__read__4 [io_0, prompt_1, pos0_2, options_3] =
         error_26
       eof_28@(ErlangTuple [(ErlangAtom "eof"), _endlocation_27]) -> eof_28
       other_29 -> other_29
+      something_else -> (EXC.case_clause something_else)
 erlps__read__4 [arg_30, arg_31, arg_32, arg_33] =
   (EXC.function_clause unit)
 erlps__read__4 args =
@@ -425,7 +428,8 @@ erlps__request__2 [(ErlangAtom "standard_io"), request_0] =
   let arg_1 = (BIF.erlang__group_leader__0 [])
   in (erlps__request__2 [arg_1, request_0])
 erlps__request__2 [pid_0, request_1]
-  | (ErlangAtom "true") <- ((BIF.erlang__is_pid__1 [pid_0])) =
+  | (ErlangAtom "true") <-
+      ((falsifyErrors (\ _ -> (BIF.erlang__is_pid__1 [pid_0])))) =
   let arg_3 = (erlps__io_request__2 [pid_0, request_1])
   in (erlps__execute_request__2 [pid_0, arg_3])
 erlps__request__2 [name_0, request_1] | (isEAtom name_0) =
@@ -434,6 +438,7 @@ erlps__request__2 [name_0, request_1] | (isEAtom name_0) =
     case case_2 of
       (ErlangAtom "undefined") -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "arguments")])
       pid_6 -> (erlps__request__2 [pid_6, request_1])
+      something_else -> (EXC.case_clause something_else)
 erlps__request__2 [arg_9, arg_10] = (EXC.function_clause unit)
 erlps__request__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -453,7 +458,7 @@ erlps__execute_request__2 [pid_0,
       (ErlangTuple [(ErlangAtom "io_reply"), mref_11, reply_12]) | (mref_11 ==
                                                              mref_3) ->
         case (ErlangAtom "true") of
-          _ | (ErlangAtom "true") <- (convert_1) ->
+          _ | (ErlangAtom "true") <- ((falsifyErrors (\ _ -> convert_1))) ->
             (erlps__convert_binaries__1 [reply_12])
           _ -> reply_12
           _ -> (EXC.if_clause unit)
@@ -476,7 +481,8 @@ erlps__requests__2 [(ErlangAtom "standard_io"), requests_0] =
   let arg_1 = (BIF.erlang__group_leader__0 [])
   in (erlps__requests__2 [arg_1, requests_0])
 erlps__requests__2 [pid_0, requests_1]
-  | (ErlangAtom "true") <- ((BIF.erlang__is_pid__1 [pid_0])) =
+  | (ErlangAtom "true") <-
+      ((falsifyErrors (\ _ -> (BIF.erlang__is_pid__1 [pid_0])))) =
   let match_expr_6 = (erlps__io_requests__2 [pid_0, requests_1])
   in
     case match_expr_6 of
@@ -491,6 +497,7 @@ erlps__requests__2 [name_0, requests_1] | (isEAtom name_0) =
     case case_2 of
       (ErlangAtom "undefined") -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "arguments")])
       pid_6 -> (erlps__requests__2 [pid_6, requests_1])
+      something_else -> (EXC.case_clause something_else)
 erlps__requests__2 [arg_9, arg_10] = (EXC.function_clause unit)
 erlps__requests__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -520,8 +527,8 @@ erlps__io_requests__4 [pid_0,
   =
   (erlps__io_requests__4
      [pid_0, rs1_1, (ErlangCons rs_2 cont_3), tail_4])
-erlps__io_requests__4 [pid_0, (ErlangCons r_1 ErlangEmptyList),
-                       ErlangEmptyList, _tail_2]
+erlps__io_requests__4 [pid_0, (ErlangCons r_1 (ErlangEmptyList)),
+                       (ErlangEmptyList), _tail_2]
   =
   let match_expr_7 = (erlps__io_request__2 [pid_0, r_1])
   in
@@ -545,12 +552,12 @@ erlps__io_requests__4 [pid_0, (ErlangCons r_1 rs_2), cont_3,
               (ErlangTuple [conv_13, (ErlangCons request_7 requests_14)])
             _ -> (EXC.badmatch match_expr_15)
       _ -> (EXC.badmatch match_expr_8)
-erlps__io_requests__4 [pid_0, ErlangEmptyList,
+erlps__io_requests__4 [pid_0, (ErlangEmptyList),
                        (ErlangCons rs_1 cont_2), tail_3]
   =
   (erlps__io_requests__4 [pid_0, rs_1, cont_2, tail_3])
-erlps__io_requests__4 [_pid_0, ErlangEmptyList, ErlangEmptyList,
-                       _tail_1]
+erlps__io_requests__4 [_pid_0, (ErlangEmptyList),
+                       (ErlangEmptyList), _tail_1]
   =
   (ErlangTuple [(ErlangAtom "false"), ErlangEmptyList])
 erlps__io_requests__4 [arg_4, arg_5, arg_6, arg_7] =
@@ -566,7 +573,7 @@ erlps__bc_req__3 [pid_0, req0_1, maybeconvert_2] =
       let case_6 = (BIF.erlang__tuple_to_list__1 [req0_1])
       in
         case case_6 of
-          (ErlangCons op_8 (ErlangCons _enc_9 ErlangEmptyList)) ->
+          (ErlangCons op_8 (ErlangCons _enc_9 (ErlangEmptyList))) ->
             (ErlangTuple [maybeconvert_2, op_8])
           (ErlangCons op_12 (ErlangCons _enc_13 t_14)) ->
             let
@@ -632,7 +639,8 @@ erlps__io_request__2 [_pid_0,
     request_24 =
       case case_4 of
         binary_19 | (ErlangAtom "true") <-
-                      ((BIF.erlang__is_binary__1 [binary_19])) ->
+                      ((falsifyErrors
+                          (\ _ -> (BIF.erlang__is_binary__1 [binary_19])))) ->
           (ErlangTuple [(ErlangAtom "put_chars"), enc_1, binary_19])
         _ -> request0_3
         something_else -> (EXC.case_clause something_else)
@@ -677,7 +685,8 @@ erlps__io_request__2 args =
 
 erlps__convert_binaries__1 :: ErlangFun
 erlps__convert_binaries__1 [bin_0]
-  | (ErlangAtom "true") <- ((BIF.erlang__is_binary__1 [bin_0])) =
+  | (ErlangAtom "true") <-
+      ((falsifyErrors (\ _ -> (BIF.erlang__is_binary__1 [bin_0])))) =
   (BIF.do_remote_fun_call "Erlang.Unicode" "erlps__characters_to_binary__3"
      [bin_0, (ErlangAtom "latin1"), (ErlangAtom "unicode")])
 erlps__convert_binaries__1 [else_0] = else_0

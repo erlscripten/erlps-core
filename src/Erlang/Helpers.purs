@@ -21,9 +21,10 @@ import Effect.Exception(throw, catchException)
 import Prelude
 import Control.Semigroupoid((<<<), (>>>))
 
+foreign import falsifyErrorsImpl :: ErlangTerm -> (Unit -> ErlangTerm) -> ErlangTerm
+
 falsifyErrors :: (Unit -> ErlangTerm) -> ErlangTerm
-falsifyErrors action =
-  unsafePerformEffect (catchException (\_ -> pure (ErlangAtom "false")) (pure (action unit)))
+falsifyErrors = falsifyErrorsImpl (ErlangAtom "false")
 
 error :: forall a. String -> a
 error = throw >>> unsafePerformEffect

@@ -1991,3 +1991,11 @@ erlang__set_cpu_topology__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-er
 
 erlang__universaltime__0 :: ErlangFun
 erlang__universaltime__0 args = unimplemented "erlang__universaltime__0"
+
+
+--------------------------------------------------------------------------------
+
+code__ensure_loaded__1 :: ErlangFun
+code__ensure_loaded__1 [ErlangAtom mName] = do_ffi_ensure_loaded mName
+code__ensure_loaded__1 [_] = EXC.function_clause unit
+code__ensure_loaded__1 _ = EXC.badarity (ErlangFun 1 purs_tco_sucks {-code__ensure_loaded__1-}) args

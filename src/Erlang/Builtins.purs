@@ -1748,7 +1748,7 @@ erlang__process_info__2 [_,_] = EXC.badarg unit
 erlang__process_info__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__process_info__2-}) args
 
 erlang__unique_integer__0 :: ErlangFun
-erlang__unique_integer__0 args = unimplemented "erlang__unique_integer__0"
+erlang__unique_integer__0 args = ErlangInt $ DBI.fromInt 42 -- FIXME
 
 erlang__system_time__0 :: ErlangFun
 erlang__system_time__0 _

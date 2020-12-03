@@ -1921,7 +1921,7 @@ erlang__dt_put_tag__1 [_] = EXC.badarg unit
 erlang__dt_put_tag__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__dt_put_tag__1-}) args
 
 erlang__phash2__1 :: ErlangFun
-erlang__phash2__1 [a] = erlang__phash2__2 [a, ErlangInt $ DBI.fromInt 268435456]  "-- FIXME
+erlang__phash2__1 [a] = erlang__phash2__2 [a, ErlangInt $ DBI.fromInt 268435456]  -- FIXME
 erlang__phash2__1 [_] = EXC.badarg unit
 erlang__phash2__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__phash2__1-}) args
 

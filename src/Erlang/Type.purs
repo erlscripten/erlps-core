@@ -99,7 +99,7 @@ eqErlangTerm numEq (ErlangMap m1) (ErlangMap m2) =
   let DT.Tuple keys1 values1 = DA.unzip $ Map.toUnfoldable m1
       DT.Tuple keys2 values2 = DA.unzip $ Map.toUnfoldable m2
   in if eqArraysWith (eqErlangTermTCOBreak strongNumEq) keys1 keys2
-    then eqArraysWith (eqErlangTerm numEq) values1 values2
+    then eqArraysWith (eqErlangTermTCOBreak numEq) values1 values2
     else false
 eqErlangTerm _ _ _ = false
 
@@ -166,7 +166,7 @@ compareErlangTerm numCmp (ErlangMap m1) (ErlangMap m2) =
   let DT.Tuple keys1 values1 = DA.unzip $ Map.toUnfoldable m1
       DT.Tuple keys2 values2 = DA.unzip $ Map.toUnfoldable m2
   in case compareArraysWith (compareErlangTermTCOBreak strongNumCmp) keys1 keys2 of
-    EQ -> compareArraysWith (compareErlangTerm numCmp) values1 values2
+    EQ -> compareArraysWith (compareErlangTermTCOBreak numCmp) values1 values2
     res -> res
 
 compareErlangTerm _   (ErlangBinary _)    _ = GT

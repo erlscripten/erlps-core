@@ -34,8 +34,17 @@ isEList ErlangEmptyList = true
 isEList (ErlangCons _ _) = true
 isEList _ = false
 
+isEInt :: ErlangTerm -> Boolean
+isEInt (ErlangInt _) = true
+isEInt _ = false
+
+isEFloat :: ErlangTerm -> Boolean
+isEFloat (ErlangFloat _) = true
+isEFloat _ = false
+
 isENum :: ErlangTerm -> Boolean
 isENum (ErlangInt _) = true
+isENum (ErlangFloat _) = true
 isENum _ = false
 
 isEAtom :: ErlangTerm -> Boolean

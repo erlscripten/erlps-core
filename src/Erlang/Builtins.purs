@@ -180,6 +180,11 @@ erlang__float__1 args = unimplemented "erlang__float__1"
 erlang__float__1 [_] = EXC.badarg unit
 erlang__float__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__float__1-}) args
 
+erlang__float__guard__1 :: ErlangFun
+erlang__float__guard__1 [arg] = boolToTerm (H.isEFloat arg)
+erlang__float__guard__1 [_] = EXC.badarg unit
+erlang__float__guard__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__float__1-}) args
+
 --------------------------------------------------------------------------------
 -- LISTS BIFS
 

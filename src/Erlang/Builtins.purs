@@ -480,33 +480,33 @@ erlang__op_plus args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_plu
 
 -- >=
 erlang__op_greaterEq :: ErlangFun
-erlang__op_greaterEq [ErlangInt i, ErlangFloat f] = boolToTerm (DBI.toNumber i >= f)
-erlang__op_greaterEq [ErlangFloat f, ErlangInt i] = boolToTerm (f >= DBI.toNumber i)
-erlang__op_greaterEq [a, b] = boolToTerm (a >= b)
+erlang__op_greaterEq [a, b] = case compareErlangTerm weakNumCmp a b of
+  LT -> ErlangAtom "false"
+  _  -> ErlangAtom "true"
 erlang__op_greaterEq [_, _] = EXC.badarg unit
 erlang__op_greaterEq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_greaterEq-}) args
 
 -- >
 erlang__op_greater :: ErlangFun
-erlang__op_greater [ErlangInt i, ErlangFloat f] = boolToTerm (DBI.toNumber i > f)
-erlang__op_greater [ErlangFloat f, ErlangInt i] = boolToTerm (f > DBI.toNumber i)
-erlang__op_greater [a, b] = boolToTerm (a > b)
+erlang__op_greater [a, b] = case compareErlangTerm weakNumCmp a b of
+  GT -> ErlangAtom "true"
+  _  -> ErlangAtom "false"
 erlang__op_greater [_, _] = EXC.badarg unit
 erlang__op_greater args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_greater-}) args
 
 -- =<
 erlang__op_lesserEq :: ErlangFun
-erlang__op_lesserEq [ErlangInt i, ErlangFloat f] = boolToTerm (DBI.toNumber i <= f)
-erlang__op_lesserEq [ErlangFloat f, ErlangInt i] = boolToTerm (f <= DBI.toNumber i)
-erlang__op_lesserEq [a, b] = boolToTerm (a <= b)
+erlang__op_lesserEq [a, b] = case compareErlangTerm weakNumCmp a b of
+  GT -> ErlangAtom "false"
+  _  -> ErlangAtom "true"
 erlang__op_lesserEq [_, _] = EXC.badarg unit
 erlang__op_lesserEq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_lesserEq-}) args
 
 -- <
 erlang__op_lesser :: ErlangFun
-erlang__op_lesser [ErlangInt i, ErlangFloat f] = boolToTerm (DBI.toNumber i < f)
-erlang__op_lesser [ErlangFloat f, ErlangInt i] = boolToTerm (f < DBI.toNumber i)
-erlang__op_lesser [a, b] = boolToTerm (a < b)
+erlang__op_lesser [a, b] = case compareErlangTerm weakNumCmp a b of
+  LT -> ErlangAtom "true"
+  _  -> ErlangAtom "false"
 erlang__op_lesser [_, _] = EXC.badarg unit
 erlang__op_lesser args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_lesser-}) args
 

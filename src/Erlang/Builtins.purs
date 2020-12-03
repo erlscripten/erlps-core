@@ -781,9 +781,7 @@ erlang__binary_to_integer__2 [_,_] = EXC.badarg unit
 erlang__binary_to_integer__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__binary_to_integer__2-}) args
 
 erlang__list_to_existing_atom__1 :: ErlangFun
-erlang__list_to_existing_atom__1 args = unimplemented "erlang__list_to_existing_atom__1"
-erlang__list_to_existing_atom__1 [_] = EXC.badarg unit
-erlang__list_to_existing_atom__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__list_to_existing_atom__1-}) args
+erlang__list_to_existing_atom__1 args = erlang__list_to_atom__1 args
 
 erlang__binary_to_existing_atom__2 :: ErlangFun
 erlang__binary_to_existing_atom__2 args = unimplemented "erlang__binary_to_existing_atom__2"
@@ -804,7 +802,6 @@ erlang__float_to_list__2 :: ErlangFun
 erlang__float_to_list__2 args = unimplemented "erlang__float_to_list__2"
 erlang__float_to_list__2 [_,_] = EXC.badarg unit
 erlang__float_to_list__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__float_to_list__2-}) args
-
 
 erlang__binary_to_list__3 :: ErlangFun
 erlang__binary_to_list__3 args = unimplemented "erlang__binary_to_list__3"
@@ -842,7 +839,7 @@ erlang__term_to_binary__2 [_,_] = EXC.badarg unit
 erlang__term_to_binary__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__term_to_binary__2-}) args
 
 erlang__tuple_to_list__1 :: ErlangFun
-erlang__tuple_to_list__1 args = unimplemented "erlang__tuple_to_list__1"
+erlang__tuple_to_list__1 [ErlangTuple t] = arrayToErlangList t
 erlang__tuple_to_list__1 [_] = EXC.badarg unit
 erlang__tuple_to_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__tuple_to_list__1-}) args
 

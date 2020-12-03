@@ -176,7 +176,8 @@ erlang__floor__1 [_] = EXC.badarg unit
 erlang__floor__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__floor__1-}) args
 
 erlang__float__1 :: ErlangFun
-erlang__float__1 args = unimplemented "erlang__float__1"
+erlang__float__1 [r@(ErlangFloat _)] = r
+erlang__float__1 [ErlangInt n] = ErlangFloat $ DBI.toNumber n
 erlang__float__1 [_] = EXC.badarg unit
 erlang__float__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__float__1-}) args
 
@@ -1709,7 +1710,8 @@ erlang__setnode__2 [_,_] = EXC.badarg unit
 erlang__setnode__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__setnode__2-}) args
 
 erlang__node__0 :: ErlangFun
-erlang__node__0 args = unimplemented "erlang__node__0"
+erlang__node__0 [] = ErlangAtom "nonode@nohost"
+erlang__node__0 args = EXC.badarity (ErlangFun 0 purs_tco_sucks {-erlang__node__0-}) args
 
 erlang__fun_info__1 :: ErlangFun
 erlang__fun_info__1 args = unimplemented "erlang__fun_info__1"

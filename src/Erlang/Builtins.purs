@@ -1884,7 +1884,9 @@ erlang__dist_ctrl_input_handler__2 [_,_] = EXC.badarg unit
 erlang__dist_ctrl_input_handler__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__dist_ctrl_input_handler__2-}) args
 
 erlang__trunc__1 :: ErlangFun
-erlang__trunc__1 args = unimplemented "erlang__trunc__1"
+erlang__trunc__1 [r@(ErlangInt _)] = r
+erlang__trunc__1 [ErlangFloat n] | n >= 0.0, DM.Just nn <- DBI.fromNumber (floor n) = ErlangInt nn
+erlang__trunc__1 [ErlangFloat n] | DM.Just nn <- DBI.fromNumber (floor (-n)) = ErlangInt (-nn)
 erlang__trunc__1 [_] = EXC.badarg unit
 erlang__trunc__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__trunc__1-}) args
 

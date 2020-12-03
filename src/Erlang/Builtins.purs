@@ -13,6 +13,7 @@ import Data.Int as DI
 import Data.UInt as DU
 import Data.Int.Bits as DIB
 import Data.Map as Map
+import Data.String as DSTR
 import Data.BigInt as DBI
 import Data.Number.Approximate as DNA
 import Math
@@ -1202,8 +1203,8 @@ make_hash (ErlangReference n) hash =
     in
         h1 * c_FUNNY_NUMBER10
 
---make_hash (ErlangAtom a) hash =
---    hash * c_FUNNY_NUMBER1 + (DU.fromInt 0) -- TODO: figure out how erlang hashes atoms...
+make_hash (ErlangAtom a) hash =
+    hash * c_FUNNY_NUMBER1 + (hash_atom a)
 
 --make_hash (ErlangFloat a) hash = ...
 --make_hash (ErlangBinary a) hash = ...
@@ -1231,6 +1232,25 @@ make_hash _ _ =
 pad_arr :: DAN.NonEmptyArray Int -> DAN.NonEmptyArray Int
 pad_arr a | DAN.length a < 4 = pad_arr (DAN.cons 0 a)
           | otherwise = a
+
+-- https://github.com/erlang/otp/blob/00a80c4d81c62c8820172b35c695f98489f4b118/erts/emulator/beam/atom.c#L129
+hash_atom s = hash_atom_int s (DU.fromInt 0)
+hash_atom_int :: String -> DU.UInt -> DU.UInt
+hash_atom_int s hash =
+    case DSTR.uncons s of
+        DM.Nothing -> hash
+        DM.Just {head: h, tail: t} ->
+            let
+                v = (DU.fromInt (H.codePointToInt h))
+                hash1 = ((DU.shl hash (DU.fromInt 4)) + v)
+                g = DU.shr hash1 (DU.fromInt 28)
+                b = g > (DU.fromInt 0)
+            in
+                case b of
+                    false ->
+                        hash_atom_int t hash1
+                    true ->
+                        hash_atom_int t (DU.xor (DU.xor hash1 (DU.shl g (DU.fromInt 4))) (DU.shl g (DU.fromInt 28)))
 
 erlang__dist_ctrl_put_data__2 :: ErlangFun
 erlang__dist_ctrl_put_data__2 args = unimplemented "erlang__dist_ctrl_put_data__2"

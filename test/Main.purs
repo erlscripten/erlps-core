@@ -242,3 +242,61 @@ main =
             let b = mkIntList [6,7,8,9,10]
             r <- exec_may_throw BIF.erlang__op_append [a, b]
             mkIntList [1,2,3,4,5,6,7,8,9,10] `shouldEqualOk` r
+
+
+    describe "Process dictionary" do
+        it "1" do
+            r1 <- exec_may_throw BIF.erlang__get__0 []
+            ErlangEmptyList `shouldEqualOk` r1
+            r2 <- exec_may_throw BIF.erlang__get__1 [mkInt 10]
+            ErlangAtom "undefined" `shouldEqualOk` r2
+            r3 <- exec_may_throw BIF.erlang__put__2 [mkInt 1, mkInt 2]
+            ErlangAtom "undefined" `shouldEqualOk` r3
+            r4 <- exec_may_throw BIF.erlang__get__1 [mkInt 1]
+            mkInt 2 `shouldEqualOk` r4
+            r5 <- exec_may_throw BIF.erlang__get__1 [mkInt 2]
+            ErlangAtom "undefined" `shouldEqualOk` r5
+            r6 <- exec_may_throw BIF.erlang__get__0 []
+            arrayToErlangList [ErlangTuple [mkInt 1, mkInt 2]] `shouldEqualOk` r6
+            r7 <- exec_may_throw BIF.erlang__put__2 [mkInt 1, mkInt 20]
+            mkInt 2 `shouldEqualOk` r7
+            r8 <- exec_may_throw BIF.erlang__get__1 [mkInt 1]
+            mkInt 20 `shouldEqualOk` r8
+            r9 <- exec_may_throw BIF.erlang__get__1 [mkInt 2]
+            ErlangAtom "undefined" `shouldEqualOk` r9
+            r10 <- exec_may_throw BIF.erlang__get__0 []
+            arrayToErlangList [ErlangTuple [mkInt 1, mkInt 20]] `shouldEqualOk` r10
+            r11 <- exec_may_throw BIF.erlang__get_keys__0 []
+            mkIntList [1] `shouldEqualOk` r11
+            r12 <- exec_may_throw BIF.erlang__get_keys__1 [mkInt 20]
+            mkIntList [1] `shouldEqualOk` r12
+            r13 <- exec_may_throw BIF.erlang__get_keys__1 [mkInt 1]
+            mkIntList [] `shouldEqualOk` r13
+            r14 <- exec_may_throw BIF.erlang__erase__0 []
+            arrayToErlangList [ErlangTuple [mkInt 1, mkInt 20]] `shouldEqualOk` r14
+            r15 <- exec_may_throw BIF.erlang__erase__0 []
+            mkIntList [] `shouldEqualOk` r15
+            r16 <- exec_may_throw BIF.erlang__erase__1 [mkInt 1]
+            ErlangAtom "undefined" `shouldEqualOk` r16
+            r17 <- exec_may_throw BIF.erlang__put__2 [mkInt 1, mkInt 2]
+            ErlangAtom "undefined" `shouldEqualOk` r17
+            r18 <- exec_may_throw BIF.erlang__erase__1 [mkInt 1]
+            mkInt 2 `shouldEqualOk` r18
+            r19 <- exec_may_throw BIF.erlang__erase__1 [mkInt 1]
+            ErlangAtom "undefined" `shouldEqualOk` r19
+            _ <- exec_may_throw BIF.erlang__put__2 [mkInt 1, mkInt 10]
+            _ <- exec_may_throw BIF.erlang__put__2 [mkInt 2, mkInt 20]
+            _ <- exec_may_throw BIF.erlang__put__2 [mkInt 3, mkInt 30]
+            r20 <- exec_may_throw BIF.erlang__erase__1 [mkInt 2]
+            mkInt 20 `shouldEqualOk` r20
+            r21 <- exec_may_throw BIF.erlang__erase__1 [mkInt 2]
+            ErlangAtom "undefined" `shouldEqualOk` r21
+            r22 <- exec_may_throw BIF.erlang__erase__1 [mkInt 1]
+            mkInt 10 `shouldEqualOk` r22
+            r23 <- exec_may_throw BIF.erlang__erase__1 [mkInt 1]
+            ErlangAtom "undefined" `shouldEqualOk` r23
+            r24 <- exec_may_throw BIF.erlang__get__1 [mkInt 3]
+            mkInt 30 `shouldEqualOk` r24
+            r25 <- exec_may_throw BIF.erlang__erase__0 []
+            arrayToErlangList [ErlangTuple [mkInt 3, mkInt 30]] `shouldEqualOk` r25
+            

@@ -900,6 +900,48 @@ erlang__bitstring_to_list__1 [_] = EXC.badarg unit
 erlang__bitstring_to_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__bitstring_to_list__1-}) args
 
 --------------------------------------------------------------------------------
+--- Process dictionary
+
+foreign import do_put_2 :: (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> ErlangTerm -> ErlangTerm -> ErlangTerm
+erlang__put__2 :: ErlangFun
+erlang__put__2 [key, value] = do_put_2 (==) key value (ErlangAtom "undefined")
+erlang__put__2 [_,_] = EXC.badarg unit
+erlang__put__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__put__2-}) args
+
+foreign import do_get_1 :: (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> ErlangTerm -> ErlangTerm
+erlang__get__1 :: ErlangFun
+erlang__get__1 [key] = do_get_1 (==) key (ErlangAtom "undefined")
+erlang__get__1 [_] = EXC.badarg unit
+erlang__get__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__get__1-}) args
+
+foreign import do_get_0 :: (ErlangTerm -> ErlangTerm -> ErlangTerm) -> Array ErlangTerm
+erlang__get__0 :: ErlangFun
+erlang__get__0 [] = arrayToErlangList $ do_get_0 (\x y -> ErlangTuple [x,y])
+erlang__get__0 args = EXC.badarity (ErlangFun 0 purs_tco_sucks {-erlang__get__0-}) args
+
+foreign import do_get_keys_0 :: Unit -> Array ErlangTerm
+erlang__get_keys__0 :: ErlangFun
+erlang__get_keys__0 [] = arrayToErlangList $ do_get_keys_0 unit
+erlang__get_keys__0 args = EXC.badarity (ErlangFun 0 purs_tco_sucks {-erlang__get_keys__0-}) args
+
+foreign import do_get_keys_1 :: (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> Array ErlangTerm
+erlang__get_keys__1 :: ErlangFun
+erlang__get_keys__1 [val] = arrayToErlangList $ do_get_keys_1 (==) val
+erlang__get_keys__1 [_] = EXC.badarg unit
+erlang__get_keys__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__get_keys__1-}) args
+
+foreign import do_erase_0 :: (ErlangTerm -> ErlangTerm -> ErlangTerm) -> Array ErlangTerm
+erlang__erase__0 :: ErlangFun
+erlang__erase__0 [] = arrayToErlangList $ do_erase_0 (\x y -> ErlangTuple [x,y])
+erlang__erase__0 args = unimplemented "erlang__erase__0"
+
+foreign import do_erase_1 :: (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> ErlangTerm -> ErlangTerm
+erlang__erase__1 :: ErlangFun
+erlang__erase__1 [key] = do_erase_1 (==) key (ErlangAtom "undefined")
+erlang__erase__1 [_] = EXC.badarg unit
+erlang__erase__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__erase__1-}) args
+
+--------------------------------------------------------------------------------
 
 erlang__process_display__2 :: ErlangFun
 erlang__process_display__2 args = unimplemented "erlang__process_display__2"
@@ -957,11 +999,6 @@ erlang__spawn_link__2 args = unimplemented "erlang__spawn_link__2"
 erlang__spawn_link__2 [_,_] = EXC.badarg unit
 erlang__spawn_link__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__spawn_link__2-}) args
 
-erlang__get__1 :: ErlangFun
-erlang__get__1 args = unimplemented "erlang__get__1"
-erlang__get__1 [_] = EXC.badarg unit
-erlang__get__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__get__1-}) args
-
 erlang__dist_ctrl_get_data__1 :: ErlangFun
 erlang__dist_ctrl_get_data__1 args = unimplemented "erlang__dist_ctrl_get_data__1"
 erlang__dist_ctrl_get_data__1 [_] = EXC.badarg unit
@@ -974,9 +1011,6 @@ erlang__setnode__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__set
 
 erlang__now__0 :: ErlangFun
 erlang__now__0 args = unimplemented "erlang__now__0"
-
-erlang__erase__0 :: ErlangFun
-erlang__erase__0 args = unimplemented "erlang__erase__0"
 
 erlang__ports__0 :: ErlangFun
 erlang__ports__0 args = unimplemented "erlang__ports__0"
@@ -998,11 +1032,6 @@ erlang__decode_packet__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlan
 
 erlang__get_cookie__0 :: ErlangFun
 erlang__get_cookie__0 args = unimplemented "erlang__get_cookie__0"
-
-erlang__put__2 :: ErlangFun
-erlang__put__2 args = unimplemented "erlang__put__2"
-erlang__put__2 [_,_] = EXC.badarg unit
-erlang__put__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__put__2-}) args
 
 erlang__unique_integer__1 :: ErlangFun
 erlang__unique_integer__1 args = unimplemented "erlang__unique_integer__1"
@@ -1627,11 +1656,6 @@ erlang__start_timer__3 args = unimplemented "erlang__start_timer__3"
 erlang__start_timer__3 [_,_,_] = EXC.badarg unit
 erlang__start_timer__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__start_timer__3-}) args
 
-erlang__erase__1 :: ErlangFun
-erlang__erase__1 args = unimplemented "erlang__erase__1"
-erlang__erase__1 [_] = EXC.badarg unit
-erlang__erase__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__erase__1-}) args
-
 erlang__port_info__1 :: ErlangFun
 erlang__port_info__1 args = unimplemented "erlang__port_info__1"
 erlang__port_info__1 [_] = EXC.badarg unit
@@ -1676,9 +1700,6 @@ erlang__setnode__2 :: ErlangFun
 erlang__setnode__2 args = unimplemented "erlang__setnode__2"
 erlang__setnode__2 [_,_] = EXC.badarg unit
 erlang__setnode__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__setnode__2-}) args
-
-erlang__get_keys__0 :: ErlangFun
-erlang__get_keys__0 args = unimplemented "erlang__get_keys__0"
 
 erlang__node__0 :: ErlangFun
 erlang__node__0 args = unimplemented "erlang__node__0"
@@ -1737,9 +1758,6 @@ erlang__port_info__2 :: ErlangFun
 erlang__port_info__2 args = unimplemented "erlang__port_info__2"
 erlang__port_info__2 [_,_] = EXC.badarg unit
 erlang__port_info__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__port_info__2-}) args
-
-erlang__get__0 :: ErlangFun
-erlang__get__0 args = unimplemented "erlang__get__0"
 
 erlang__unregister__1 :: ErlangFun
 erlang__unregister__1 args = unimplemented "erlang__unregister__1"
@@ -1818,11 +1836,6 @@ erlang__spawn_monitor__3 :: ErlangFun
 erlang__spawn_monitor__3 args = unimplemented "erlang__spawn_monitor__3"
 erlang__spawn_monitor__3 [_,_,_] = EXC.badarg unit
 erlang__spawn_monitor__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__spawn_monitor__3-}) args
-
-erlang__get_keys__1 :: ErlangFun
-erlang__get_keys__1 args = unimplemented "erlang__get_keys__1"
-erlang__get_keys__1 [_] = EXC.badarg unit
-erlang__get_keys__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__get_keys__1-}) args
 
 erlang__demonitor__2 :: ErlangFun
 erlang__demonitor__2 args = unimplemented "erlang__demonitor__2"

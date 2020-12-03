@@ -1498,6 +1498,177 @@ var RUNTIME = function () {
     return ref_ctr(system.make_ref().id);
   }
 
+  function do_put_2(cmp) {
+    return function (key) {
+      return function (value) {
+        return function (on_no_key) {
+          var dict = system.get_process_dict();
+
+          var _iterator5 = _createForOfIteratorHelper(dict),
+              _step5;
+
+          try {
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var dpair = _step5.value;
+              var dkey = dpair[0];
+              var dval = dpair[1];
+
+              if (cmp(dkey)(key)) {
+                system.put(dkey, value);
+                return dval;
+              }
+            }
+          } catch (err) {
+            _iterator5.e(err);
+          } finally {
+            _iterator5.f();
+          }
+
+          system.put(key, value);
+          return on_no_key;
+        };
+      };
+    };
+  }
+
+  function do_get_1(cmp) {
+    return function (key) {
+      return function (on_no_key) {
+        var dict = system.get_process_dict();
+
+        var _iterator6 = _createForOfIteratorHelper(dict),
+            _step6;
+
+        try {
+          for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+            var dpair = _step6.value;
+            var dkey = dpair[0];
+            var dval = dpair[1];
+
+            if (cmp(dkey)(key)) {
+              return dval;
+            }
+          }
+        } catch (err) {
+          _iterator6.e(err);
+        } finally {
+          _iterator6.f();
+        }
+
+        return on_no_key;
+      };
+    };
+  }
+
+  function do_get_0(wrap) {
+    var dict = system.get_process_dict();
+    var res = [];
+
+    var _iterator7 = _createForOfIteratorHelper(dict),
+        _step7;
+
+    try {
+      for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+        var dpair = _step7.value;
+        var dkey = dpair[0];
+        var dval = dpair[1];
+        res.push(wrap(dkey)(dval));
+      }
+    } catch (err) {
+      _iterator7.e(err);
+    } finally {
+      _iterator7.f();
+    }
+
+    return res;
+  }
+
+  function do_get_keys_0(x) {
+    var dict = system.get_process_dict();
+    var res = [];
+
+    var _iterator8 = _createForOfIteratorHelper(dict),
+        _step8;
+
+    try {
+      for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+        var dpair = _step8.value;
+        var dkey = dpair[0];
+        res.push(dkey);
+      }
+    } catch (err) {
+      _iterator8.e(err);
+    } finally {
+      _iterator8.f();
+    }
+
+    return res;
+  }
+
+  function do_get_keys_1(cmp) {
+    return function (val) {
+      var dict = system.get_process_dict();
+      var res = [];
+
+      var _iterator9 = _createForOfIteratorHelper(dict),
+          _step9;
+
+      try {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+          var dpair = _step9.value;
+          var dkey = dpair[0];
+          var dval = dpair[1];
+
+          if (cmp(dval)(val)) {
+            res.push(dkey);
+          }
+        }
+      } catch (err) {
+        _iterator9.e(err);
+      } finally {
+        _iterator9.f();
+      }
+
+      return res;
+    };
+  }
+
+  function do_erase_0(wrap) {
+    var res = do_get_0(wrap);
+    system.erase();
+    return res;
+  }
+
+  function do_erase_1(cmp) {
+    return function (key) {
+      return function (on_no_key) {
+        var dict = system.get_process_dict();
+
+        var _iterator10 = _createForOfIteratorHelper(dict),
+            _step10;
+
+        try {
+          for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+            var dpair = _step10.value;
+            var dkey = dpair[0];
+            var dval = dpair[1];
+
+            if (cmp(dkey)(key)) {
+              system.erase(dkey);
+              return dval;
+            }
+          }
+        } catch (err) {
+          _iterator10.e(err);
+        } finally {
+          _iterator10.f();
+        }
+
+        return on_no_key;
+      };
+    };
+  }
+
   return {
     do_ffi_remote_fun_call: do_ffi_remote_fun_call,
     do_make_ref_0: do_make_ref_0,
@@ -1507,6 +1678,13 @@ var RUNTIME = function () {
     do_is_process_alive_1: do_is_process_alive_1,
     do_spawn_1: do_spawn_1,
     do_apply_4: do_apply_4,
+    do_put_2: do_put_2,
+    do_get_1: do_get_1,
+    do_get_0: do_get_0,
+    do_get_keys_0: do_get_keys_0,
+    do_get_keys_1: do_get_keys_1,
+    do_erase_0: do_erase_0,
+    do_erase_1: do_erase_1,
     system: system
   };
 }();
@@ -1519,7 +1697,14 @@ exports.do_send_2 = RUNTIME.do_send_2;
 exports.do_self_0 = RUNTIME.do_self_0;
 exports.do_is_process_alive_1 = RUNTIME.do_is_process_alive_1;
 exports.do_spawn_1 = RUNTIME.do_spawn_1;
-exports.do_apply_4 = RUNTIME.do_apply_4; // Missing math functions
+exports.do_apply_4 = RUNTIME.do_apply_4;
+exports.do_put_2 = RUNTIME.do_put_2;
+exports.do_get_1 = RUNTIME.do_get_1;
+exports.do_get_0 = RUNTIME.do_get_0;
+exports.do_get_keys_0 = RUNTIME.do_get_keys_0;
+exports.do_get_keys_1 = RUNTIME.do_get_keys_1;
+exports.do_erase_0 = RUNTIME.do_erase_0;
+exports.do_erase_1 = RUNTIME.do_erase_1; // Missing math functions
 //--------------------------------------------------------------------------------
 
 exports.acosh = Math.acosh || function (x) {

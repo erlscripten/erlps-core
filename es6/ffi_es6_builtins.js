@@ -997,6 +997,101 @@ function do_make_ref_0(ref_ctr) {
     return ref_ctr(system.make_ref().id);
 }
 
+function do_put_2(cmp) {
+    return function(key) {
+        return function(value) {
+            return function(on_no_key) {
+                var dict = system.get_process_dict();
+                for (let dpair of dict) {
+                    let dkey = dpair[0];
+                    let dval = dpair[1];
+                    if (cmp(dkey)(key)) {
+                        system.put(dkey, value);
+                        return dval;
+                    }
+                }
+                system.put(key, value);
+                return on_no_key;
+            }
+        }
+    }
+}
+
+function do_get_1(cmp) {
+    return function(key) {
+        return function(on_no_key) {
+            var dict = system.get_process_dict();
+            for (let dpair of dict) {
+                let dkey = dpair[0];
+                let dval = dpair[1];
+                if (cmp(dkey)(key)) {
+                    return dval;
+                }
+            }
+            return on_no_key;
+        }
+    }
+}
+
+function do_get_0(wrap) {
+    var dict = system.get_process_dict();
+    var res = [];
+    for (let dpair of dict) {
+        let dkey = dpair[0];
+        let dval = dpair[1];
+        res.push(wrap(dkey)(dval))
+    }
+    return res;
+}
+
+function do_get_keys_0(x) {
+    var dict = system.get_process_dict();
+    var res = [];
+    for (let dpair of dict) {
+        let dkey = dpair[0];
+        res.push(dkey)
+    }
+    return res;
+}
+
+function do_get_keys_1(cmp) {
+    return function(val) {
+        var dict = system.get_process_dict();
+        var res = [];
+        for (let dpair of dict) {
+            let dkey = dpair[0];
+            let dval = dpair[1];
+            if (cmp(dval)(val)) {
+                res.push(dkey)
+            }
+        }
+        return res;
+    }
+}
+
+function do_erase_0(wrap) {
+    var res = do_get_0(wrap);
+    system.erase();
+    return res;
+}
+
+function do_erase_1(cmp) {
+    return function(key) {
+        return function(on_no_key) {
+            var dict = system.get_process_dict();
+            for (let dpair of dict) {
+                let dkey = dpair[0];
+                let dval = dpair[1];
+                if (cmp(dkey)(key)) {
+                    system.erase(dkey);
+                    return dval;
+                }
+            }
+            return on_no_key;
+        }
+    }
+}
+
     return {
         do_ffi_remote_fun_call: do_ffi_remote_fun_call,
         do_make_ref_0: do_make_ref_0,
@@ -1006,6 +1101,13 @@ function do_make_ref_0(ref_ctr) {
         do_is_process_alive_1: do_is_process_alive_1,
         do_spawn_1: do_spawn_1,
         do_apply_4: do_apply_4,
+        do_put_2: do_put_2,
+        do_get_1: do_get_1,
+        do_get_0: do_get_0,
+        do_get_keys_0: do_get_keys_0,
+        do_get_keys_1: do_get_keys_1,
+        do_erase_0: do_erase_0,
+        do_erase_1: do_erase_1,
         system: system
     };
 
@@ -1020,6 +1122,13 @@ exports.do_self_0 = RUNTIME.do_self_0;
 exports.do_is_process_alive_1 = RUNTIME.do_is_process_alive_1;
 exports.do_spawn_1 = RUNTIME.do_spawn_1;
 exports.do_apply_4 = RUNTIME.do_apply_4;
+exports.do_put_2 = RUNTIME.do_put_2;
+exports.do_get_1 = RUNTIME.do_get_1;
+exports.do_get_0 = RUNTIME.do_get_0;
+exports.do_get_keys_0 = RUNTIME.do_get_keys_0;
+exports.do_get_keys_1 = RUNTIME.do_get_keys_1;
+exports.do_erase_0 = RUNTIME.do_erase_0;
+exports.do_erase_1 = RUNTIME.do_erase_1;
 
 // Missing math functions
 //--------------------------------------------------------------------------------

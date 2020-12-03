@@ -16,6 +16,9 @@ import Data.Map as Map
 import Data.String as DSTR
 import Data.BigInt as DBI
 import Data.Number.Approximate as DNA
+import Data.DateTime.Instant as TINS
+import Data.Time.Duration as TDUR
+import Effect.Now
 import Math
 import Control.Monad
 import Effect.Exception (throw)
@@ -1748,7 +1751,10 @@ erlang__unique_integer__0 :: ErlangFun
 erlang__unique_integer__0 args = unimplemented "erlang__unique_integer__0"
 
 erlang__system_time__0 :: ErlangFun
-erlang__system_time__0 args = unimplemented "erlang__system_time__0"
+erlang__system_time__0 _
+    | TDUR.Milliseconds n <- TINS.unInstant $ unsafePerformEffect now, DM.Just m <- DBI.fromNumber n =
+    ErlangInt m
+erlang__system_time__0 _ = EXC.badarg unit
 
 erlang__yield__0 :: ErlangFun
 erlang__yield__0 args = unimplemented "erlang__yield__0"

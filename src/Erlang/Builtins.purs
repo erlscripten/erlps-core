@@ -360,29 +360,25 @@ erlang__map_get__2 args = maps__get__2 args
 
 -- =/=
 erlang__op_exactNeq :: ErlangFun
-erlang__op_exactNeq [a, b] = boolToTerm (a /= b)  -- FIXME (funs)
+erlang__op_exactNeq [a, b] = boolToTerm (not $ eqErlangTerm strongNumEq a b)
 erlang__op_exactNeq [_, _] = EXC.badarg unit
 erlang__op_exactNeq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_exactNeq-}) args
 
 -- =:=
 erlang__op_exactEq :: ErlangFun
-erlang__op_exactEq [a, b] = boolToTerm (a == b) -- FIXME (funs)
+erlang__op_exactEq [a, b] = boolToTerm (eqErlangTerm strongNumEq a b)
 erlang__op_exactEq [_, _] = EXC.badarg unit
 erlang__op_exactEq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_exactEq-}) args
 
 -- /=
 erlang__op_neq :: ErlangFun
-erlang__op_neq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
-erlang__op_neq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.neqApproximate (DBI.toNumber i) f)
-erlang__op_neq [a, b] = boolToTerm (a /= b) -- FIXME (funs, floats)
+erlang__op_neq [a, b] = boolToTerm (not $ eqErlangTerm weakNumEq a b)
 erlang__op_neq [_, _] = EXC.badarg unit
 erlang__op_neq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_neq-}) args
 
 -- ==
 erlang__op_eq :: ErlangFun
-erlang__op_eq [ErlangInt i, ErlangFloat f] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
-erlang__op_eq [ErlangFloat f, ErlangInt i] = boolToTerm (DNA.eqApproximate (DBI.toNumber i) f)
-erlang__op_eq [a, b] = boolToTerm (a == b) -- FIXME (funs, floats)
+erlang__op_eq [a, b] = boolToTerm (eqErlangTerm weakNumEq a b)
 erlang__op_eq [_, _] = EXC.badarg unit
 erlang__op_eq args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_eq-}) args
 
@@ -418,15 +414,6 @@ erlang__op_div_strict :: ErlangFun
 erlang__op_div_strict [ErlangInt a, ErlangInt b] = ErlangInt (a / b)
 erlang__op_div_strict [_, _] = EXC.badarg unit
 erlang__op_div_strict args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__op_div-}) args
-
--- %
-erlang__op_rem :: ErlangFun
-erlang__op_rem [ErlangInt left, ErlangInt right] = ErlangInt (mod left right)
---erlang__op_rem [ErlangInt a, ErlangFloat b] = ErlangInt ((DBI.toNumber a) / b) -- FIXME
---erlang__op_rem [ErlangFloat a, ErlangInt b] = ErlangFloat (a / (DBI.toNumber b)) -- FIXME
-erlang__op_rem [ErlangFloat a, ErlangFloat b] = ErlangFloat (a % b)
-erlang__op_rem [_,_] = EXC.badarg unit
-erlang__op_rem args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__rem__2-}) args
 
 -- 'rem'
 erlang__op_rem_strict :: ErlangFun

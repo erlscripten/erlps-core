@@ -296,9 +296,7 @@ erlang__length__1 [l] =
 erlang__length__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__length__1-}) args
 
 erlang__subtract__2 :: ErlangFun
-erlang__subtract__2 args = unimplemented "erlang__subtract__2"
-erlang__subtract__2 [_,_] = EXC.badarg unit
-erlang__subtract__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__subtract__2-}) args
+erlang__subtract__2 = erlang__op_unAppend
 
 --------------------------------------------------------------------------------
 --- MAP BIFS
@@ -1689,7 +1687,23 @@ erlang__delete_element__2 [_,_] = EXC.badarg unit
 erlang__delete_element__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__delete_element__2-}) args
 
 erlang__round__1 :: ErlangFun
-erlang__round__1 args = unimplemented "erlang__round__1"
+erlang__round__1 [i@(ErlangInt _)] = i
+erlang__round__1 [ErlangFloat f]
+  | DM.Just shot1 <- DBI.fromNumber f
+  , DM.Just shot2 <- DBI.fromNumber (f + 1.0)
+  , DM.Just shot3 <- DBI.fromNumber (f - 1.0) =
+    let back1 = DBI.toNumber shot1
+        back2 = DBI.toNumber shot2
+        back3 = DBI.toNumber shot3
+    in if f > 0.0
+       then if f - back1 < back2 - f
+            then ErlangInt shot1
+            else ErlangInt shot2
+       else if f < 0.0
+       then if back1 - f < f - back3
+            then ErlangInt shot1
+            else ErlangInt shot3
+       else ErlangInt (DBI.fromInt 0)
 erlang__round__1 [_] = EXC.badarg unit
 erlang__round__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__round__1-}) args
 

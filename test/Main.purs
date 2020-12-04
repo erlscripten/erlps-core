@@ -184,6 +184,32 @@ main =
         it "1 =< 1.0" $ assert BIF.erlang__op_lesserEq [mkInt 1, ErlangFloat 1.0]
         it "1 >= 1.0" $ assert BIF.erlang__op_greaterEq [mkInt 1, ErlangFloat 1.0]
 
+    describe "Round" do
+        it "0.0" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat 0.0]
+          mkInt 0 `shouldEqualOk` r
+        it "0.1" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat 0.1]
+          mkInt 0 `shouldEqualOk` r
+        it "0.5" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat 0.5]
+          mkInt 1 `shouldEqualOk` r
+        it "0.7" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat 0.7]
+          mkInt 1 `shouldEqualOk` r
+        it "-0.0" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat (-0.0)]
+          mkInt 0 `shouldEqualOk` r
+        it "-0.1" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat (-0.1)]
+          mkInt 0 `shouldEqualOk` r
+        it "-0.5" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat (-0.5)]
+          mkInt (-1) `shouldEqualOk` r
+        it "-0.7" do
+          r <- exec_may_throw BIF.erlang__round__1 [ErlangFloat (-0.7)]
+          mkInt (-1) `shouldEqualOk` r
+
     describe "Operators" do
         it "-- 1" do
             r <- exec_may_throw BIF.erlang__op_unAppend [ErlangEmptyList, ErlangEmptyList]

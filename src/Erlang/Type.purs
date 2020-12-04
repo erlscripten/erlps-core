@@ -201,6 +201,20 @@ compareErlangTermTCOBreak numCmp = compareErlangTerm numCmp
 instance ordErlangTermInst :: Ord ErlangTerm where
     compare = compareErlangTerm strongNumCmp
 
+weakEq :: ErlangTerm -> ErlangTerm -> Boolean
+weakEq = eqErlangTerm weakNumEq
+
+weakCmp :: ErlangTerm -> ErlangTerm -> Ordering
+weakCmp = compareErlangTerm weakNumCmp
+
+weakGt :: ErlangTerm -> ErlangTerm -> Boolean
+weakGt a b = compareErlangTerm weakNumCmp a b == GT
+weakLt :: ErlangTerm -> ErlangTerm -> Boolean
+weakLt a b = compareErlangTerm weakNumCmp a b == LT
+weakGeq :: ErlangTerm -> ErlangTerm -> Boolean
+weakGeq a b = compareErlangTerm weakNumCmp a b /= LT
+weakLeq :: ErlangTerm -> ErlangTerm -> Boolean
+weakLeq a b = compareErlangTerm weakNumCmp a b /= GT
 
 concatArrays :: Buffer -> Buffer -> Effect (Buffer)
 concatArrays a b = concat [a, b]

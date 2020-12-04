@@ -204,6 +204,9 @@ instance ordErlangTermInst :: Ord ErlangTerm where
 weakEq :: ErlangTerm -> ErlangTerm -> Boolean
 weakEq = eqErlangTerm weakNumEq
 
+weakNEq :: ErlangTerm -> ErlangTerm -> Boolean
+weakNEq = not (eqErlangTerm weakNumEq)
+
 weakCmp :: ErlangTerm -> ErlangTerm -> Ordering
 weakCmp = compareErlangTerm weakNumCmp
 

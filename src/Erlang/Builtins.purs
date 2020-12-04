@@ -5,6 +5,7 @@ import Erlang.Exception as EXC
 import Erlang.Helpers as H
 import Prelude
 import Data.Tuple as DT
+import Data.List as DL
 import Data.Maybe as DM
 import Data.Array as DA
 import Data.Array.NonEmpty as DAN
@@ -15,6 +16,8 @@ import Data.Int.Bits as DIB
 import Data.Map as Map
 import Data.String as DSTR
 import Data.BigInt as DBI
+import Data.String.CodePoints as CodePoints
+import Data.Char as Char
 import Data.Number.Approximate as DNA
 import Data.DateTime.Instant as TINS
 import Data.Time.Duration as TDUR
@@ -655,14 +658,16 @@ erlang__is_port__1 [_] = EXC.badarg unit
 erlang__is_port__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_port__1-}) args
 
 erlang__is_boolean__1 :: ErlangFun
-erlang__is_boolean__1 [ErlangAtom "true"] = boolToTerm true
-erlang__is_boolean__1 [ErlangAtom "false"] = boolToTerm true
+erlang__is_boolean__1 [ErlangAtom "true"] = ErlangAtom "true"
+erlang__is_boolean__1 [ErlangAtom "false"] = ErlangAtom "true"
 erlang__is_boolean__1 [_] = boolToTerm false
 erlang__is_boolean__1 [_] = EXC.badarg unit
 erlang__is_boolean__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__is_boolean__1-}) args
 
 erlang__is_record__2 :: ErlangFun
-erlang__is_record__2 args = unimplemented "erlang__is_record__2"
+erlang__is_record__2 [term, ErlangAtom tag] = case term of
+  ErlangTuple arr | DM.Just (ErlangAtom termTag) <- DA.head arr -> boolToTerm $ tag == termTag
+  _ -> ErlangAtom "false"
 erlang__is_record__2 [_,_] = EXC.badarg unit
 erlang__is_record__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__is_record__2-}) args
 
@@ -714,7 +719,10 @@ erlang__is_function__2 [_, _] = ErlangAtom "false"
 erlang__is_function__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__is_function__2-}) args
 
 erlang__is_record__3 :: ErlangFun
-erlang__is_record__3 args = unimplemented "erlang__is_record__3"
+erlang__is_record__3 [term, ErlangAtom tag, ErlangInt bsize]
+  | DM.Just size <- H.bigIntToInt bsize = case term of
+    ErlangTuple arr | DM.Just (ErlangAtom termTag) <- DA.head arr, size == DA.length arr -> boolToTerm $ tag == termTag
+    _ -> ErlangAtom "false"
 erlang__is_record__3 [_,_,_] = EXC.badarg unit
 erlang__is_record__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__is_record__3-}) args
 
@@ -812,8 +820,20 @@ erlang__binary_to_list__3 [_,_,_] = EXC.badarg unit
 erlang__binary_to_list__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__binary_to_list__3-}) args
 
 erlang__list_to_atom__1 :: ErlangFun
-erlang__list_to_atom__1 args = unimplemented "erlang__list_to_atom__1"
-erlang__list_to_atom__1 [_] = EXC.badarg unit
+erlang__list_to_atom__1 [el] =
+  case erlangListToList el of
+    DM.Nothing -> EXC.badarg unit
+    DM.Just l -> ErlangAtom
+      $ CodePoints.fromCodePointArray
+      $ DA.fromFoldable
+      $ map (\term -> case term of
+                ErlangInt bi
+                  | DM.Just i <- H.bigIntToInt bi
+                  , DM.Just c <- Char.fromCharCode i ->
+                  CodePoints.codePointFromChar c
+                _ -> EXC.badarg unit
+            )
+      $ l
 erlang__list_to_atom__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__list_to_atom__1-}) args
 
 erlang__ref_to_list__1 :: ErlangFun
@@ -2020,7 +2040,22 @@ erlang__bump_reductions__1 [_] = EXC.badarg unit
 erlang__bump_reductions__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__bump_reductions__1-}) args
 
 erlang__make_tuple__3 :: ErlangFun
-erlang__make_tuple__3 args = unimplemented "erlang__make_tuple__3"
+erlang__make_tuple__3 [ErlangInt barity, def, list]
+  | DM.Just arity <- H.bigIntToInt barity, arity >= 0 =
+  let processList :: ErlangTerm -> Map.Map Int ErlangTerm -> Map.Map Int ErlangTerm
+      processList ErlangEmptyList acc = acc
+      processList (ErlangCons (ErlangTuple [(ErlangInt bidx), val]) rest) acc
+        | DM.Just idx <- H.bigIntToInt bidx, idx > 0, idx <= arity =
+          processList rest (Map.insert idx val acc)
+      processList _ _ = EXC.badarg unit
+
+      idxMap = processList list Map.empty
+
+      buildTuple 0 acc =
+        ErlangTuple $ DA.fromFoldable acc
+      buildTuple n acc =
+        buildTuple (n - 1) (DL.Cons (DM.fromMaybe def (Map.lookup n idxMap)) acc)
+  in buildTuple arity DL.Nil
 erlang__make_tuple__3 [_,_,_] = EXC.badarg unit
 erlang__make_tuple__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__make_tuple__3-}) args
 

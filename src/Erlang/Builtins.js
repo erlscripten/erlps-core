@@ -1435,6 +1435,8 @@ var RUNTIME = function () {
             return nofile;
           }
         }
+
+        return success;
       };
     };
   }

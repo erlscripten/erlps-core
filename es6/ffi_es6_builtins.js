@@ -955,6 +955,7 @@ function do_ffi_ensure_loaded(moduleName) {
                     return nofile;
                 }
             }
+            return success;
         }
     }
 }

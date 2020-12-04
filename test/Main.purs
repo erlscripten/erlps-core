@@ -18,6 +18,7 @@ import Test.Spec.Runner (runSpec)
 import Data.String.CodePoints as StrCP
 import Data.String as Str
 import Unsafe.Coerce
+import Effect.Console as C
 
 import Data.Time.Duration
 import Data.Lazy
@@ -74,7 +75,7 @@ print_err (Left e) =
 exec_may_throw :: ErlangFun -> Array ErlangTerm -> Aff ErlangTerm
 exec_may_throw fun args = do
     res <- attempt $ exec_may_throw_aff fun args
-    -- liftEffect $ log $ print_err res -- Uncomment for logs :)
+--    liftEffect $ log $ print_err res -- Uncomment for logs :)
     case res of
         Left _ -> pure make_err
         Right r -> pure $ make_ok r
@@ -411,3 +412,9 @@ main =
             r <- exec_may_throw BIF.erlang__phash__2 [mkInt 200, mkInt 1337]
             mkBInt "521" `shouldEqualOk` r
 
+    describe "Ensure loaded" do
+      it "unsuccessful" do
+        ErlangTuple [ErlangAtom "error", ErlangAtom "nofile"] `shouldEqual` BIF.code__ensure_loaded__1 [ErlangAtom "tralalalalala"]
+      it "successful" do
+        ErlangTuple [ErlangAtom "module", ErlangAtom "erlang_io"] `shouldEqual` BIF.code__ensure_loaded__1 [ErlangAtom "erlang_io"]
+        ErlangTuple [ErlangAtom "module", ErlangAtom "erlang_io"] `shouldEqual` BIF.code__ensure_loaded__1 [ErlangAtom "erlang_io"]

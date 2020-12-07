@@ -181,28 +181,15 @@ format_bin (ErlangBinary buf) (ErlangInt bsize) unit
   in Buffer.slice 0 bufSize buf
 format_bin _ _ _ = EXC.badarg unit
 
+to_erlang_list_from_to :: Buffer -> Int -> Int -> ErlangTerm
+to_erlang_list_from_to buf from to =
+  if from < 1 || to > unsafePerformEffect (Buffer.size buf)
+  then EXC.badarg unit
+  else to_erlang_list (Buffer.slice (from - 1) (to - 1) buf)
 
-
--- toArray :: ErlangTerm -> Effect (Array Int)
--- toArray (ErlangBinary a) = do
---     Buffer.toArray a
--- toArray _ = error "toArray – not a binary"
-
--- toB64 :: ErlangTerm -> String
--- toB64 (ErlangBinary a) =
---     unsafePerformEffect $ Buffer.toString Base64 a
--- toB64 _ = error "toB64 – not a binary"
-
--- fromB64 :: String -> ErlangTerm
--- fromB64 str = do
---     ErlangBinary $ unsafePerformEffect $ Buffer.fromString str Base64
-
--- toB58 :: Partial => ErlangTerm -> String
--- toB58 (ErlangBinary a) =
---     B58.encode $ unsafePerformEffect $ Buffer.toArray a
--- toB58 _ = error "toB58 – not a binary"
-
--- fromB58 :: String -> Maybe ErlangTerm
--- fromB58 str = do
---     s <- B58.decode str
---     pure $ ErlangBinary $ unsafePerformEffect $ Buffer.fromArray s
+to_erlang_list :: Buffer -> ErlangTerm
+to_erlang_list =
+  arrayToErlangList
+  <<< map (ErlangInt <<< DBI.fromInt)
+  <<< unsafePerformEffect
+  <<< Buffer.toArray

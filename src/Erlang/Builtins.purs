@@ -3,6 +3,7 @@ module Erlang.Builtins where
 import Erlang.Type
 import Erlang.Exception as EXC
 import Erlang.Helpers as H
+import Erlang.Binary as BIN
 import Prelude
 import Data.Tuple as DT
 import Data.List as DL
@@ -813,7 +814,9 @@ erlang__float_to_list__2 [_,_] = EXC.badarg unit
 erlang__float_to_list__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__float_to_list__2-}) args
 
 erlang__binary_to_list__3 :: ErlangFun
-erlang__binary_to_list__3 args = unimplemented "erlang__binary_to_list__3"
+erlang__binary_to_list__3 [ErlangBinary bin, ErlangInt dl, ErlangInt dr]
+  | DM.Just l <- H.bigIntToInt dl, DM.Just r <- H.bigIntToInt dr
+  = BIN.to_erlang_list_from_to bin l r
 erlang__binary_to_list__3 [_,_,_] = EXC.badarg unit
 erlang__binary_to_list__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__binary_to_list__3-}) args
 
@@ -845,7 +848,7 @@ erlang__list_to_binary__1 [_] = EXC.badarg unit
 erlang__list_to_binary__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__list_to_binary__1-}) args
 
 erlang__binary_to_list__1 :: ErlangFun
-erlang__binary_to_list__1 args = unimplemented "erlang__binary_to_list__1"
+erlang__binary_to_list__1 [ErlangBinary bin] = BIN.to_erlang_list bin
 erlang__binary_to_list__1 [_] = EXC.badarg unit
 erlang__binary_to_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__binary_to_list__1-}) args
 
@@ -936,7 +939,7 @@ erlang__list_to_tuple__1 [_] = EXC.badarg unit
 erlang__list_to_tuple__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-ErlangTuple-}) args
 
 erlang__bitstring_to_list__1 :: ErlangFun
-erlang__bitstring_to_list__1 args = unimplemented "erlang__bitstring_to_list__1"
+erlang__bitstring_to_list__1 [ErlangBinary bin] = BIN.to_erlang_list bin
 erlang__bitstring_to_list__1 [_] = EXC.badarg unit
 erlang__bitstring_to_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__bitstring_to_list__1-}) args
 

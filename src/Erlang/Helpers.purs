@@ -5,6 +5,7 @@ import Erlang.Exception as EXC
 import Control.Monad
 import Data.Maybe as DM
 import Data.List as DL
+import Data.Char as DC
 import Data.Array as DA
 import Data.Map as Map
 import Data.String as Str
@@ -12,6 +13,7 @@ import Data.BigInt as DBI
 import Data.Int as DI
 import Data.String.CodePoints as StrCP
 import Data.Foldable
+import Data.Traversable(traverse)
 
 import Partial.Unsafe
 import Unsafe.Coerce
@@ -100,3 +102,13 @@ findMissingKey :: ErlangTerm -> Array ErlangTerm -> DM.Maybe ErlangTerm
 findMissingKey (ErlangMap m) keys =
   DA.find (\key -> not (Map.member key m)) keys
 findMissingKey t _ = DM.Just (EXC.badmap t)
+
+erlangListToString :: ErlangTerm -> DM.Maybe String
+erlangListToString t =
+  erlangListToList t >>=
+  traverse (\x -> case x of
+               ErlangInt di ->
+                 map (StrCP.codePointFromChar) (bigIntToInt di >>= DC.fromCharCode)
+               _ -> DM.Nothing
+           )
+  <#> (DA.fromFoldable >>> StrCP.fromCodePointArray)

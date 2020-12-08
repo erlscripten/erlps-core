@@ -5,11 +5,12 @@ import Node.Buffer (Buffer, toArray, fromArray, toArray, concat)
 import Data.List as DL
 import Data.Array as DA
 import Data.BigInt as DBI
-import Data.Number.Approximate as DNA
 import Data.Maybe as DM
 import Data.Map as Map
 import Data.Char as DC
 import Data.Tuple as DT
+import Data.String.CodePoints as DSCP
+import Data.Traversable(traverse)
 import Effect (Effect)
 import Effect.Unsafe (unsafePerformEffect)
 import Effect.Exception (throw)
@@ -54,9 +55,6 @@ instance showErlangTerm :: Show ErlangTerm where
         show a
     show (ErlangPID a) =
         show a
-
--- floatEq :: Number -> Number -> Boolean
--- floatEq = DNA.eqRelative (DNA.Fraction 1.0e-16)
 
 weakNumEq :: ErlangTerm -> ErlangTerm -> Boolean
 weakNumEq (ErlangInt a) (ErlangFloat b) = (DBI.toNumber a) == b

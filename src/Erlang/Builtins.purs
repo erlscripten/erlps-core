@@ -746,7 +746,9 @@ erlang__list_to_float__1 [_] = EXC.badarg unit
 erlang__list_to_float__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__list_to_float__1-}) args
 
 erlang__list_to_integer__2 :: ErlangFun
-erlang__list_to_integer__2 args = unimplemented "erlang__list_to_integer__2"
+erlang__list_to_integer__2 [t, ErlangInt bbase]
+  | DM.Just base <- H.bigIntToInt bbase
+  , DM.Just i <- H.erlangListToString t >>= DBI.fromBase base = ErlangInt i
 erlang__list_to_integer__2 [_,_] = EXC.badarg unit
 erlang__list_to_integer__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-erlang__list_to_integer__2-}) args
 
@@ -873,7 +875,8 @@ erlang__binary_to_term__1 [_] = EXC.badarg unit
 erlang__binary_to_term__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__binary_to_term__1-}) args
 
 erlang__list_to_integer__1 :: ErlangFun
-erlang__list_to_integer__1 args = unimplemented "erlang__list_to_integer__1"
+erlang__list_to_integer__1 [t]
+  | DM.Just i <- H.erlangListToString t >>= DBI.fromString = ErlangInt i
 erlang__list_to_integer__1 [_] = EXC.badarg unit
 erlang__list_to_integer__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__list_to_integer__1-}) args
 

@@ -10,7 +10,6 @@ import Data.Map as Map
 import Data.Char as DC
 import Data.Tuple as DT
 import Data.String.CodePoints as DSCP
-import Data.Traversable(traverse)
 import Effect (Effect)
 import Effect.Unsafe (unsafePerformEffect)
 import Effect.Exception (throw)

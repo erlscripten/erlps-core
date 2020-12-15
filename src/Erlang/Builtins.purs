@@ -1367,7 +1367,7 @@ erlang__port_control__3 [_,_,_] = EXC.badarg unit
 erlang__port_control__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-erlang__port_control__3-}) args
 
 erlang__byte_size__1 :: ErlangFun
-erlang__byte_size__1 args = unimplemented "erlang__byte_size__1"
+erlang__byte_size__1 [ErlangBinary buf] = BIN.size buf
 erlang__byte_size__1 [_] = EXC.badarg unit
 erlang__byte_size__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__byte_size__1-}) args
 

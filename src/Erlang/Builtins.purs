@@ -2160,3 +2160,19 @@ code__ensure_loaded__1 :: ErlangFun
 code__ensure_loaded__1 [ErlangAtom mName] = do_ensure_loaded mName
 code__ensure_loaded__1 [_] = EXC.function_clause unit
 code__ensure_loaded__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-code__ensure_loaded__1-}) args
+
+--------------------------------------------------------------------------------
+
+binary__decode_unsigned__1 :: ErlangFun
+binary__decode_unsigned__1 [ErlangBinary buf] =
+  ErlangInt $ BIN.decode_unsigned_big buf
+binary__decode_unsigned__1 [_, _] = EXC.badarg unit
+binary__decode_unsigned__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-binary__decode_unsigned__1-}) args
+
+binary__decode_unsigned__2 :: ErlangFun
+binary__decode_unsigned__2 [ErlangBinary buf, ErlangAtom "little"] =
+  ErlangInt $ BIN.decode_unsigned_little buf
+binary__decode_unsigned__2 [ErlangBinary buf, ErlangAtom "big"] =
+  ErlangInt $ BIN.decode_unsigned_big buf
+binary__decode_unsigned__2 [_, _] = EXC.badarg unit
+binary__decode_unsigned__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-binary__decode_unsigned__2-}) args

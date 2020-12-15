@@ -16,6 +16,7 @@ import Data.Array.NonEmpty as NonEmpty
 import Partial.Unsafe (unsafePartial)
 import Data.Array as DA
 import Data.Maybe as DM
+import Data.Tuple as DT
 import Data.List as DL
 import Data.Int as Int
 import Data.BigInt as DBI
@@ -42,8 +43,14 @@ concat_erl listTerm =
     DM.Nothing -> EXC.bad_generator listTerm
     DM.Just l -> ErlangBinary $ concat (DA.fromFoldable $ map buffer l)
 
-empty :: Buffer.Buffer -> Boolean
+empty :: Buffer -> Boolean
 empty buf = unsafePerformEffect $ map (_ == 0) (Buffer.size buf)
+
+toArray :: Buffer -> Array Int
+toArray = unsafePerformEffect <<< Buffer.toArray
+
+rawSize :: Buffer -> Int
+rawSize = unsafePerformEffect <<< Buffer.size
 
 size :: Buffer -> ErlangTerm
 size = ErlangInt <<< DBI.fromInt <<< unsafePerformEffect <<< Buffer.size
@@ -189,3 +196,43 @@ to_erlang_list =
   <<< map (ErlangInt <<< DBI.fromInt)
   <<< unsafePerformEffect
   <<< Buffer.toArray
+
+data SplitOpt = Global | Trim | TrimAll | Scope Int Int
+derive instance splitOptEq :: Eq SplitOpt
+
+split :: forall f. Foldable f
+      => Buffer -> f Buffer -> f SplitOpt -> ErlangTerm
+split buf pats opts =
+  let trim    = elem Trim    opts
+      trimAll = elem TrimAll opts
+      global  = elem Global  opts
+      DT.Tuple start len =
+        DM.fromMaybe (DT.Tuple 0 (rawSize buf))
+        $ findMap (\o -> case o of
+                      Scope s l -> DM.Just $ DT.Tuple s l
+                      _ -> DM.Nothing) opts
+
+      leftBuf  = Buffer.slice 0 start buf
+      mainBuf  = Buffer.slice start len buf
+      rightBuf = Buffer.slice (start + len) (rawSize buf) buf
+
+      go :: DL.List Buffer -> Int -> DL.List Buffer
+      go acc n =
+        if n == len then DL.reverse acc
+        else case find (\pat -> toArray (Buffer.slice n (rawSize pat) mainBuf) == toArray pat) pats of
+          DM.Nothing -> go acc (n + 1)
+          DM.Just pat ->
+            let left  = pat
+                right = Buffer.slice (n + rawSize pat) (rawSize mainBuf) mainBuf
+            in if global then go (DL.Cons left acc) (n + rawSize pat)
+               else DL.reverse (DL.Cons left acc)
+
+      splitted = go DL.Nil 0
+
+      list =
+        if trimAll
+        then DL.filter (\b -> rawSize b > 0) splitted
+        else if trim
+        then DL.reverse $ DL.dropWhile (\b -> rawSize b == 0) $ DL.reverse $ splitted
+        else splitted
+  in DL.foldr (\e acc -> ErlangCons (ErlangBinary e) acc) ErlangEmptyList list

@@ -2189,3 +2189,32 @@ binary__decode_unsigned__2 [ErlangBinary buf, ErlangAtom "big"] =
   ErlangInt $ BIN.decode_unsigned_big buf
 binary__decode_unsigned__2 [_, _] = EXC.badarg unit
 binary__decode_unsigned__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-binary__decode_unsigned__2-}) args
+
+binary__split__2 :: ErlangFun
+binary__split__2 [bin, pat] = binary__split__3 [bin, pat, ErlangEmptyList]
+binary__split__2 args = EXC.badarity (ErlangFun 2 purs_tco_sucks {-binary__split__2-}) args
+
+binary__split__3 :: ErlangFun
+binary__split__3 [bin, pat@(ErlangBinary _), opts] =
+  binary__split__3 [bin, ErlangCons pat ErlangEmptyList, opts]
+binary__split__3 [ErlangBinary buf, epat, eopts]
+  | DM.Just pat <- erlangListToList epat
+  , DM.Just opts <- erlangListToList eopts
+  = BIN.split buf patterns options where
+    patterns = map (\p -> case p of
+                       ErlangBinary b -> b
+                       _ -> EXC.badarg unit
+                       ) pat
+    options = map (\o -> case o of
+                      ErlangAtom "trim" -> BIN.Trim
+                      ErlangAtom "trim_all" -> BIN.TrimAll
+                      ErlangAtom "global" -> BIN.Global
+                      ErlangTuple [ErlangAtom "scope", ErlangTuple [ErlangInt bstart, ErlangInt blen]]
+                          | DM.Just start <- H.bigIntToInt bstart
+                          , DM.Just len <- H.bigIntToInt blen
+                          , start >= 0
+                            -> BIN.Scope start len
+                      _ -> EXC.badarg unit
+                       ) opts
+binary__split__3 [_, _, _] = EXC.badarg unit
+binary__split__3 args = EXC.badarity (ErlangFun 3 purs_tco_sucks {-binary__split__3-}) args

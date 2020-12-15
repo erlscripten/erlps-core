@@ -22,9 +22,6 @@ import Data.BigInt as DBI
 import Data.Maybe(Maybe, fromJust)
 import Data.Foldable
 
-error :: forall a. String -> a
-error = unsafePerformEffect <<< throw
-
 data Endian = Big | Little
 data Sign   = Signed | Unsigned
 data BinResult = Nah | Ok ErlangTerm Buffer.Buffer
@@ -34,7 +31,7 @@ fromFoldable f = unsafePerformEffect (Buffer.fromArray (DA.fromFoldable f))
 
 buffer :: ErlangTerm -> Buffer
 buffer (ErlangBinary buf) = buf
-buffer _ = error "buffer: not a binary"
+buffer _ = EXC.badarg unit
 
 concat :: Array Buffer -> Buffer
 concat args = unsafePerformEffect $ Buffer.concat args
@@ -167,8 +164,7 @@ from_float (ErlangFloat f) (ErlangInt bsize) unit_ endian
   | DM.Just size <- H.bigIntToInt bsize =
   let big = case size * unit_ of
         32 -> float32ToArray f
-        64 -> float64ToArray f
-        _  -> error "shouldn't happen"
+        _  -> float64ToArray f
   in fromFoldable $ case endian of
     Little -> DA.reverse big
     Big -> big

@@ -773,7 +773,14 @@ erlang__iolist_to_iovec__1 [_] = EXC.badarg unit
 erlang__iolist_to_iovec__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__iolist_to_iovec__1-}) args
 
 erlang__iolist_to_binary__1 :: ErlangFun
-erlang__iolist_to_binary__1 args = unimplemented "erlang__iolist_to_binary__1"
+erlang__iolist_to_binary__1 [b@(ErlangBinary _)] = b
+erlang__iolist_to_binary__1 [el]
+  | DM.Just l <- H.erlangListToFlatList el = ErlangBinary
+    $ BIN.fromFoldable
+    $ map (\x -> case x of ErlangInt bi | DM.Just i <- H.bigIntToInt bi -> i
+                           _ -> EXC.badarg unit
+          )
+    $ l
 erlang__iolist_to_binary__1 [_] = EXC.badarg unit
 erlang__iolist_to_binary__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__iolist_to_binary__1-}) args
 
@@ -845,7 +852,13 @@ erlang__ref_to_list__1 [_] = EXC.badarg unit
 erlang__ref_to_list__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__ref_to_list__1-}) args
 
 erlang__list_to_binary__1 :: ErlangFun
-erlang__list_to_binary__1 args = unimplemented "erlang__list_to_binary__1"
+erlang__list_to_binary__1 [el]
+  | DM.Just l <- H.erlangListToFlatList el = ErlangBinary
+    $ BIN.fromFoldable
+    $ map (\x -> case x of ErlangInt bi | DM.Just i <- H.bigIntToInt bi -> i
+                           _ -> EXC.badarg unit
+          )
+    $ l
 erlang__list_to_binary__1 [_] = EXC.badarg unit
 erlang__list_to_binary__1 args = EXC.badarity (ErlangFun 1 purs_tco_sucks {-erlang__list_to_binary__1-}) args
 

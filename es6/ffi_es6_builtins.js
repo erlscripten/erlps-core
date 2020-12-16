@@ -836,11 +836,15 @@ class ProcessSystem {
 var system = new ProcessSystem();
 var loaded_code = new Map();
 
-function atom_to_function_name(name, arity) {
+function atom_to_function_name(module, name, arity) {
+    if (module == "erlang")
+        return "erlang__" + name + "__" + arity;
     return "erlps__" + name + "__" + arity;
 }
 
 function atom_to_module_name(name) {
+    if (name == "erlang") return "Erlang.Builtins"
+    if (name == "io") return "Erlang.Io"
     return name.split('_').map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join('.')
 }
 
@@ -849,9 +853,8 @@ function do_apply_4(moduleName) {
         return function(functionName) {
             return function(argumentArray) {
                 return function(failCallback) {
-                    //FIXME: BIFS
                     var mName = atom_to_module_name(moduleName);
-                    var fName = atom_to_function_name(functionName, argumentArray.length);
+                    var fName = atom_to_function_name(moduleName, functionName, argumentArray.length);
                     return do_ffi_remote_fun_call(mName)(fName)(argumentArray)(failCallback);
                 };
             };
@@ -861,9 +864,8 @@ function do_apply_4(moduleName) {
 function do_function_exported_3(moduleName) {
     return function(functionName) {
         return function(arity) {
-            // FIXME: BIFS
             var mName = atom_to_module_name(moduleName);
-            var fName = atom_to_function_name(functionName, arity);
+            var fName = atom_to_function_name(moduleName, functionName, arity);
             var module = loaded_code.get(mName);
             if (module) {
                 var f = module[fName];
@@ -882,7 +884,40 @@ function do_onload(name, module) {
         f();
     }
     /* Very very very dirty JS hack... */
-    if (name == "Maps") {
+    if (name == "Erlang.Builtins") {
+        const op_aliases = {
+                 "+": "op_plus"
+                 , "-": "op_minus"
+                 , "*": "op_mult"
+                 , "/":   "op_div"
+                 , "div": "op_div_strict"
+                 , "%":   "op_rem"
+                 , "rem": "op_rem_strict"
+                 , "/=":  "op_neq"
+                 , "=/=": "op_exactNeq"
+                 , "==":  "op_eq"
+                 , "=:=": "op_exactEq"
+                 , ">":   "op_greater"
+                 , "<":   "op_lesser"
+                 , ">=":  "op_greaterEq"
+                 , "=<":  "op_lesserEq"
+                 , "++":  "op_append"
+                 , "--":  "op_unAppend"
+                 , "and": "op_and"
+                 , "or":  "op_or"
+                 , "!":   "send__2"
+                 };
+        const ar1_aliases = { "not": "op_not"
+                            , "-": "op_neg"
+                            };
+        for(var v in op_aliases) {
+            module["erlang__" + v + "__2"] = module["erlang__" + op_aliases[v]]
+        };
+        for(var v in ar1_aliases) {
+            module["erlang__" + v + "__1"] = module["erlang__" + ar1_aliases[v]]
+        };
+    }
+    else if (name == "Maps") {
         var bifs = get_erlang_module();
         module["erlps__get__2"] = bifs["maps__get__2"];
         module["erlps__find__2"] = bifs["maps__find__2"];
@@ -935,8 +970,15 @@ function module_resolve(name) {
 
 var bif_module = undefined;
 function get_erlang_module() {
-    if(bif_module === undefined)
-        bif_module = module_resolve("Erlang.Builtins");
+    if(bif_module === undefined) {
+        const name = "Erlang.Builtins";
+        bif_module = loaded_code.get(name);
+        if(bif_module === undefined) {
+            bif_module = module_resolve(name);
+            bif_module = do_onload(name, bif_module);
+            loaded_code.set(name, bif_module);
+        }
+    }
     return bif_module;
 }
 

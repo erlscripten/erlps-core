@@ -462,3 +462,23 @@ main =
       it "{0} = erlang:make_tuple(1,0,[])." do
             r <- exec_may_throw BIF.erlang__make_tuple__3 [mkInt 1, mkInt 0, ErlangEmptyList]
             ErlangTuple [mkInt 0] `shouldEqualOk` r
+
+    describe "apply/3" do
+        it "calls biffs" do
+            r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "hd", arrayToErlangList [mkIntList [1]]]
+            mkInt 1 `shouldEqualOk` r
+        it "calls +" do
+            r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "+", arrayToErlangList [mkInt 1, mkInt 2]]
+            mkInt 3 `shouldEqualOk` r
+        it "calls -" do
+            r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "-", arrayToErlangList [mkInt 5, mkInt 2]]
+            mkInt 3 `shouldEqualOk` r
+        it "calls *" do
+            r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "*", arrayToErlangList [mkInt 2, mkInt 3]]
+            mkInt 6 `shouldEqualOk` r
+        it "calls unary neg" do
+            r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "-", arrayToErlangList [mkInt 3]]
+            mkInt (-3) `shouldEqualOk` r
+        it "calls float" do
+            r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "float", arrayToErlangList [mkInt 3]]
+            ErlangFloat 3.0 `shouldEqualOk` r

@@ -228,7 +228,7 @@ split buf pats opts =
         else  -- Check if some pattern starts here. TODO: KNP
           case find (\pat ->
                       rawSize pat <= (start + len) - n &&  -- It fits...
-                      toArray (Buffer.slice n (rawSize pat) buf) == toArray pat  -- It matches
+                      toArray (Buffer.slice n (rawSize pat) buf) == toArray pat  -- It matches...
                     ) pats of
             -- If not then we try further
             DM.Nothing -> go acc last (n + 1)
@@ -241,9 +241,9 @@ split buf pats opts =
                            Buffer.slice last (n - last) buf
               in if global
                  then  -- Proceed from behind the pat
-                   go (DL.Cons cut acc) n (n + rawSize pat)
+                   go (DL.Cons cut acc) (n + rawSize pat) (n + rawSize pat)
                  else  -- Force finalization
-                   go (DL.Cons cut acc) n len
+                   go (DL.Cons cut acc) (n + rawSize pat) (start + len)
 
       splitted = go DL.Nil start start
 

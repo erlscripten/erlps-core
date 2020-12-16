@@ -2202,7 +2202,7 @@ binary__split__3 [ErlangBinary buf, epat, eopts]
   , DM.Just opts <- erlangListToList eopts
   = BIN.split buf patterns options where
     patterns = map (\p -> case p of
-                       ErlangBinary b -> b
+                       ErlangBinary b | BIN.rawSize b /= 0 -> b
                        _ -> EXC.badarg unit
                        ) pat
     options = map (\o -> case o of

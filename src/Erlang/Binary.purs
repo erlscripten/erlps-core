@@ -212,22 +212,35 @@ split buf pats opts =
                       Scope s l -> DM.Just $ DT.Tuple s l
                       _ -> DM.Nothing) opts
 
-      leftBuf  = Buffer.slice 0 start buf
-      mainBuf  = Buffer.slice start len buf
-      rightBuf = Buffer.slice (start + len) (rawSize buf) buf
+      go :: DL.List Buffer -> Int -> Int -> DL.List Buffer
+      go acc last n =
+        if n >= start + len  -- If we reached the end
+        then if last == start  -- We didn't find anything
+             then  -- No split at all
+               DL.Cons buf DL.Nil
+             else  -- Remember to add right side to last result!
+               DL.reverse $ DL.Cons (Buffer.slice last (rawSize buf) buf) acc
+        else  -- Check if some pattern starts here. TODO: KNP
+          case find (\pat ->
+                      rawSize pat <= (start + len) - n &&
+                      toArray (Buffer.slice n (rawSize pat) buf) == toArray pat
+                    ) pats of
+            -- If not then we try further
+            DM.Nothing -> go acc last (n + 1)
+            -- If some `pat` matches
+            DM.Just pat ->
+              let cut = if last == start  -- If we didn't find anything yet
+                         then  -- Include left side
+                           Buffer.slice 0 n buf
+                         else  -- Cut from last to here ("here" exclusive)
+                           Buffer.slice last (n - last) buf
+              in if global
+                 then  -- Proceed from behind the pat
+                   go (DL.Cons cut acc) n (n + rawSize pat)
+                 else  -- Force finalization
+                   go (DL.Cons cut acc) n len
 
-      go :: DL.List Buffer -> Int -> DL.List Buffer
-      go acc n =
-        if n == len then DL.reverse acc
-        else case find (\pat -> toArray (Buffer.slice n (rawSize pat) mainBuf) == toArray pat) pats of
-          DM.Nothing -> go acc (n + 1)
-          DM.Just pat ->
-            let left  = pat
-                right = Buffer.slice (n + rawSize pat) (rawSize mainBuf) mainBuf
-            in if global then go (DL.Cons left acc) (n + rawSize pat)
-               else DL.reverse (DL.Cons left acc)
-
-      splitted = go DL.Nil 0
+      splitted = go DL.Nil start start
 
       list =
         if trimAll

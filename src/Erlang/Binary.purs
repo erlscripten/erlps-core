@@ -147,18 +147,22 @@ decode_unsigned_little buf = unsafePerformEffect (Buffer.size buf >>= go buf (DB
 
 from_int :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
 from_int (ErlangInt n) (ErlangInt size) unit endian =
-  let bufSize = (size * DBI.fromInt unit) / DBI.fromInt 8
+  from_int_bound n (DM.Just size) unit endian
+from_int _ _ _ _ = EXC.badarg unit
+
+from_int_bound :: DBI.BigInt -> DM.Maybe DBI.BigInt -> Int -> Endian -> Buffer
+from_int_bound n msize unit endian =
+  let bufSize = map ((_ * DBI.fromInt unit) >>> (_ / DBI.fromInt 8)) msize
       build x num acc =
-        if x == DBI.fromInt 0
+        if DM.maybe (num == DBI.fromInt 0) (\size -> size == DBI.fromInt 0) x
         then acc
-        else build (x - DBI.fromInt 1) (num / DBI.fromInt 256)
+        else build (map (_ - DBI.fromInt 1) x) (num / DBI.fromInt 256)
              (DL.Cons (unsafePartial $ DM.fromJust $ H.bigIntToInt $ num `mod` DBI.fromInt 256) acc)
       big = build bufSize n DL.Nil
   in fromFoldable $
     case endian of
       Big -> big
       Little -> DL.reverse big
-from_int _ _ _ _ = EXC.badarg unit
 
 foreign import float32ToArray :: Number -> Array Int
 foreign import float64ToArray :: Number -> Array Int

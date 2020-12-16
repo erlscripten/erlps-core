@@ -2190,6 +2190,14 @@ binary__decode_unsigned__2 [ErlangBinary buf, ErlangAtom "big"] =
 binary__decode_unsigned__2 [_, _] = EXC.badarg unit
 binary__decode_unsigned__2 args = EXC.badarity (ErlangFun 2 binary__decode_unsigned__2) args
 
+binary__encode_unsigned__2 :: ErlangFun
+binary__encode_unsigned__2 [ErlangInt i, ErlangAtom "little"] =
+  ErlangBinary $ BIN.from_int_bound i DM.Nothing 8 BIN.Little
+binary__encode_unsigned__2 [ErlangInt i, ErlangAtom "big"] =
+  ErlangBinary $ BIN.from_int_bound i DM.Nothing 8 BIN.Big
+binary__encode_unsigned__2 [_, _] = EXC.badarg unit
+binary__encode_unsigned__2 args = EXC.badarity (ErlangFun 2 binary__encode_unsigned__2) args
+
 binary__split__2 :: ErlangFun
 binary__split__2 [bin, pat] = binary__split__3 [bin, pat, ErlangEmptyList]
 binary__split__2 args = EXC.badarity (ErlangFun 2 binary__split__2) args

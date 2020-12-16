@@ -138,14 +138,14 @@ math_arr1 :: Array ErlangTerm -> (Number -> Number) -> ErlangTerm
 math_arr1 [ErlangInt num] f = math_arr1 [ErlangFloat $ DBI.toNumber num] f
 math_arr1 [ErlangFloat arg] f = ErlangFloat (f arg)
 math_arr1 [_] _ = EXC.badarg unit
-math_arr1 args _ = EXC.badarity (ErlangFun 1 math_arr1_1) args
+math_arr1 args f = EXC.badarity (ErlangFun 1 (\a -> math_arr1 a f)) args
 
 math_arr2 :: Array ErlangTerm -> (Number -> Number -> Number) -> ErlangTerm
 math_arr2 [ErlangInt num, arg2] f = math_arr2 [ErlangFloat $ DBI.toNumber num, arg2] f
 math_arr2 [arg1, ErlangInt num] f = math_arr2 [arg1, ErlangFloat $ DBI.toNumber num] f
 math_arr2 [ErlangFloat arg1, ErlangFloat arg2] f = ErlangFloat (f arg1 arg2)
 math_arr2 [_] _ = EXC.badarg unit
-math_arr2 args _ = EXC.badarity (ErlangFun 2 math_arr2_1) args
+math_arr2 args f = EXC.badarity (ErlangFun 2 (\a -> math_arr2 a f)) args
 
 math__sin__1 args = math_arr1 args sin
 math__cos__1 args = math_arr1 args cos
@@ -458,13 +458,13 @@ erlang__op_div args = EXC.badarity (ErlangFun 2 erlang__op_div) args
 erlang__op_div_strict :: ErlangFun
 erlang__op_div_strict [ErlangInt a, ErlangInt b] = ErlangInt (a / b)
 erlang__op_div_strict [_, _] = EXC.badarg unit
-erlang__op_div_strict args = EXC.badarity (ErlangFun 2 erlang__op_div) args
+erlang__op_div_strict args = EXC.badarity (ErlangFun 2 erlang__op_div_strict) args
 
 -- 'rem'
 erlang__op_rem_strict :: ErlangFun
 erlang__op_rem_strict [ErlangInt left, ErlangInt right] = ErlangInt (mod left right)
 erlang__op_rem_strict [_,_] = EXC.badarg unit
-erlang__op_rem_strict args = EXC.badarity (ErlangFun 2 erlang__rem__2) args
+erlang__op_rem_strict args = EXC.badarity (ErlangFun 2 erlang__op_rem_strict) args
 
 -- *
 erlang__op_mult :: ErlangFun

@@ -215,15 +215,20 @@ split buf pats opts =
       go :: DL.List Buffer -> Int -> Int -> DL.List Buffer
       go acc last n =
         if n >= start + len  -- If we reached the end
-        then if last == start  -- We didn't find anything
-             then  -- No split at all
+        then case acc of
+             DL.Nil ->  -- If we didn't find anything then split at all
                DL.Cons buf DL.Nil
-             else  -- Remember to add right side to last result!
-               DL.reverse $ DL.Cons (Buffer.slice last (rawSize buf) buf) acc
+             DL.Cons lastCut rest ->  -- Add right side to last result
+               DL.reverse $ DL.Cons
+                              (Buffer.slice
+                               (last - rawSize lastCut) -- Rollback to lastCut's beginning
+                               (rawSize buf) -- Take everything
+                               buf)
+                              acc
         else  -- Check if some pattern starts here. TODO: KNP
           case find (\pat ->
-                      rawSize pat <= (start + len) - n &&
-                      toArray (Buffer.slice n (rawSize pat) buf) == toArray pat
+                      rawSize pat <= (start + len) - n &&  -- It fits...
+                      toArray (Buffer.slice n (rawSize pat) buf) == toArray pat  -- It matches
                     ) pats of
             -- If not then we try further
             DM.Nothing -> go acc last (n + 1)

@@ -565,6 +565,12 @@ erlang__op_neg [ErlangFloat n] = ErlangFloat (-n)
 erlang__op_neg [_] = EXC.badarg unit
 erlang__op_neg args = EXC.badarity (ErlangFun 1 erlang__op_neg) args
 
+-- +
+erlang__op_unary_plus :: ErlangFun
+erlang__op_unary_plus [r@(ErlangInt _)] = r
+erlang__op_unary_plus [r@(ErlangFloat _)] = r
+erlang__op_unary_plus args = EXC.badarity (ErlangFun 1 erlang__op_unary_plus) args
+
 -- not
 erlang__op_not :: ErlangFun
 erlang__op_not [ErlangAtom "false"] = ErlangAtom "true"

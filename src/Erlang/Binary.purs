@@ -23,6 +23,7 @@ import Data.BigInt as DBI
 import Data.Maybe(Maybe, fromJust)
 import Data.Foldable
 
+
 data Endian = Big | Little
 data Sign   = Signed | Unsigned
 data BinResult = Nah | Ok ErlangTerm Buffer.Buffer
@@ -221,14 +222,14 @@ split buf pats opts =
              DL.Cons lastCut rest ->  -- Add right side to last result
                DL.reverse $ DL.Cons
                               (Buffer.slice
-                               (last - rawSize lastCut) -- Rollback to lastCut's beginning
+                               (last - rawSize lastCut + 1) -- Rollback to lastCut's beginning
                                (rawSize buf) -- Take everything
                                buf)
                               acc
         else  -- Check if some pattern starts here. TODO: KNP
           case find (\pat ->
                       rawSize pat <= (start + len) - n &&  -- It fits...
-                      toArray (Buffer.slice n (rawSize pat) buf) == toArray pat  -- It matches...
+                      toArray (Buffer.slice n (n + rawSize pat) buf) == toArray pat  -- It matches...
                     ) pats of
             -- If not then we try further
             DM.Nothing -> go acc last (n + 1)
@@ -238,7 +239,7 @@ split buf pats opts =
                          then  -- Include left side
                            Buffer.slice 0 n buf
                          else  -- Cut from last to here ("here" exclusive)
-                           Buffer.slice last (n - last) buf
+                           Buffer.slice last n buf
               in if global
                  then  -- Proceed from behind the pat
                    go (DL.Cons cut acc) (n + rawSize pat) (n + rawSize pat)

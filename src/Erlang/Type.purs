@@ -31,7 +31,7 @@ data ErlangTerm
 
 instance showErlangTerm :: Show ErlangTerm where
     show (ErlangInt a) =
-        show a
+        DBI.toString a
     show (ErlangFloat a) =
         show a
     show term  | DM.Just l <- erlangListToList term =

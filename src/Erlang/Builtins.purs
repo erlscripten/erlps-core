@@ -2191,7 +2191,8 @@ binary__decode_unsigned__2 [_, _] = EXC.badarg unit
 binary__decode_unsigned__2 args = EXC.badarity (ErlangFun 2 binary__decode_unsigned__2) args
 
 binary__encode_unsigned__1 :: ErlangFun
-binary__encode_unsigned__1 [i@(ErlangInt _)] = binary__encode_unsigned__1 [i, ErlangAtom "big"]
+binary__encode_unsigned__1 [i@(ErlangInt _)] =
+  binary__encode_unsigned__2 [i, ErlangAtom "big"]
 binary__encode_unsigned__1 [_] = EXC.badarg unit
 binary__encode_unsigned__1 args = EXC.badarity (ErlangFun 1 binary__encode_unsigned__1) args
 

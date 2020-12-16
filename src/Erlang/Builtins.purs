@@ -774,7 +774,7 @@ erlang__integer_to_binary__1 [_] = EXC.badarg unit
 erlang__integer_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__integer_to_binary__1) args
 
 erlang__iolist_to_iovec__1 :: ErlangFun
-erlang__iolist_to_iovec__1 args = unimplemented "erlang__iolist_to_iovec__1"
+erlang__iolist_to_iovec__1 args = ErlangCons (erlang__iolist_to_binary__1 args) ErlangEmptyList
 erlang__iolist_to_iovec__1 [_] = EXC.badarg unit
 erlang__iolist_to_iovec__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_to_iovec__1) args
 
@@ -790,6 +790,22 @@ erlang__iolist_to_binary__1 [el]
 erlang__iolist_to_binary__1 [_] = EXC.badarg unit
 erlang__iolist_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_to_binary__1) args
 
+-- TODO: Optimize me :P
+erlang__iolist_size__1 :: ErlangFun
+erlang__iolist_size__1 args = erlang__byte_size__1 [erlang__iolist_to_binary__1 args]
+
+erlang__list_to_binary__1 :: ErlangFun
+erlang__list_to_binary__1 [ErlangBinary _] = EXC.badarg unit
+erlang__list_to_binary__1 [el]
+  | DM.Just l <- H.erlangListToFlatList el = ErlangBinary
+    $ BIN.fromFoldable
+    $ map (\x -> case x of ErlangInt bi | DM.Just i <- H.bigIntToInt bi -> i
+                           _ -> EXC.badarg unit
+          )
+    $ l
+erlang__list_to_binary__1 [_] = EXC.badarg unit
+erlang__list_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__list_to_binary__1) args
+
 erlang__list_to_bitstring__1 :: ErlangFun
 erlang__list_to_bitstring__1 args = unimplemented "erlang__list_to_bitstring__1"
 erlang__list_to_bitstring__1 [_] = EXC.badarg unit
@@ -804,9 +820,6 @@ erlang__binary_to_integer__2 :: ErlangFun
 erlang__binary_to_integer__2 args = unimplemented "erlang__binary_to_integer__2"
 erlang__binary_to_integer__2 [_,_] = EXC.badarg unit
 erlang__binary_to_integer__2 args = EXC.badarity (ErlangFun 2 erlang__binary_to_integer__2) args
-
-erlang__list_to_existing_atom__1 :: ErlangFun
-erlang__list_to_existing_atom__1 args = erlang__list_to_atom__1 args
 
 erlang__binary_to_existing_atom__2 :: ErlangFun
 erlang__binary_to_existing_atom__2 args = unimplemented "erlang__binary_to_existing_atom__2"
@@ -852,21 +865,13 @@ erlang__list_to_atom__1 [el] =
       $ l
 erlang__list_to_atom__1 args = EXC.badarity (ErlangFun 1 erlang__list_to_atom__1) args
 
+erlang__list_to_existing_atom__1 :: ErlangFun
+erlang__list_to_existing_atom__1 args = erlang__list_to_atom__1 args
+
 erlang__ref_to_list__1 :: ErlangFun
 erlang__ref_to_list__1 args = unimplemented "erlang__ref_to_list__1"
 erlang__ref_to_list__1 [_] = EXC.badarg unit
 erlang__ref_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__ref_to_list__1) args
-
-erlang__list_to_binary__1 :: ErlangFun
-erlang__list_to_binary__1 [el]
-  | DM.Just l <- H.erlangListToFlatList el = ErlangBinary
-    $ BIN.fromFoldable
-    $ map (\x -> case x of ErlangInt bi | DM.Just i <- H.bigIntToInt bi -> i
-                           _ -> EXC.badarg unit
-          )
-    $ l
-erlang__list_to_binary__1 [_] = EXC.badarg unit
-erlang__list_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__list_to_binary__1) args
 
 erlang__binary_to_list__1 :: ErlangFun
 erlang__binary_to_list__1 [ErlangBinary bin] = BIN.to_erlang_list bin
@@ -1165,11 +1170,6 @@ erlang__spawn_opt__2 :: ErlangFun
 erlang__spawn_opt__2 args = unimplemented "erlang__spawn_opt__2"
 erlang__spawn_opt__2 [_,_] = EXC.badarg unit
 erlang__spawn_opt__2 args = EXC.badarity (ErlangFun 2 erlang__spawn_opt__2) args
-
-erlang__iolist_size__1 :: ErlangFun
-erlang__iolist_size__1 args = unimplemented "erlang__iolist_size__1"
-erlang__iolist_size__1 [_] = EXC.badarg unit
-erlang__iolist_size__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_size__1) args
 
 erlang__element__2 :: ErlangFun
 erlang__element__2 [ErlangInt bpos, ErlangTuple array]

@@ -32,6 +32,7 @@ import Partial.Unsafe
 import Erlang.Type
 import Erlang.Exception
 import Erlang.Builtins as BIF
+import Erlang.Binary as BIN
 import Erlang.Invoke
 import Erlang.Helpers as H
 import Node.Buffer as Buf
@@ -119,6 +120,9 @@ mkInt = DBI.fromInt >>> ErlangInt
 
 mkIntList :: Array Int -> ErlangTerm
 mkIntList a = arrayToErlangList $ map mkInt a
+
+mkBinary :: Array Int -> ErlangTerm
+mkBinary a = ErlangBinary $ BIN.fromFoldable a
 
 mkBInt s = ErlangInt $ unsafePartial $ M.fromJust $ DBI.fromString s
 get2to32 = mkBInt "4294967296"
@@ -482,3 +486,67 @@ main =
         it "calls float" do
             r <- exec_may_throw BIF.erlang__apply__3 [ErlangAtom "erlang", ErlangAtom "float", arrayToErlangList [mkInt 3]]
             ErlangFloat 3.0 `shouldEqualOk` r
+
+    describe "list_to_binary" do
+        it "proper list 1" do
+            r <- exec_may_throw BIF.erlang__list_to_binary__1 [mkIntList [1,2,3,4]]
+            mkBinary [1,2,3,4] `shouldEqualOk` r
+        it "proper list 2" do
+            r <- exec_may_throw BIF.erlang__list_to_binary__1 [arrayToErlangList [mkIntList [1,2,3,4], mkInt 6, mkInt 7]]
+            mkBinary [1,2,3,4,6,7] `shouldEqualOk` r
+        it "proper list 3" do
+            r <- exec_may_throw BIF.erlang__list_to_binary__1 [arrayToErlangList [mkIntList [1,2,3,4], mkInt 6, mkInt 7, mkBinary [1,2,3,4,6,7]]]
+            mkBinary [1,2,3,4,6,7,1,2,3,4,6,7] `shouldEqualOk` r
+        it "direct binary" do
+            r <- exec_may_throw BIF.erlang__list_to_binary__1 [mkBinary [1,3,3,7]]
+            make_err `shouldEqual` r
+        it "improperList 1" do
+            -- end of IOLIST can be a binary
+            r <- exec_may_throw BIF.erlang__list_to_binary__1 [ErlangCons (mkInt 1) (mkBinary [2])]
+            mkBinary [1,2] `shouldEqualOk` r
+        it "improperList 2" do
+            -- end of IOLIST is either a binary or a empty list
+            r <- exec_may_throw BIF.erlang__list_to_binary__1 [ErlangCons (mkInt 1) (mkInt 2)]
+            make_err `shouldEqual` r
+        it "iolists contain bytes not ints ;)" do
+            r1 <- exec_may_throw BIF.erlang__list_to_binary__1 [mkIntList [255]]
+            mkBinary [255] `shouldEqualOk` r1
+            r2 <- exec_may_throw BIF.erlang__list_to_binary__1 [mkIntList [256]]
+            make_err `shouldEqual` r2
+
+    describe "iolist_to_binary" do
+        it "proper list 1" do
+            r <- exec_may_throw BIF.erlang__iolist_to_binary__1 [mkIntList [1,2,3,4]]
+            mkBinary [1,2,3,4] `shouldEqualOk` r
+        it "proper list 2" do
+            r <- exec_may_throw BIF.erlang__iolist_to_binary__1 [arrayToErlangList [mkIntList [1,2,3,4], mkInt 6, mkInt 7]]
+            mkBinary [1,2,3,4,6,7] `shouldEqualOk` r
+        it "proper list 3" do
+            r <- exec_may_throw BIF.erlang__iolist_to_binary__1 [arrayToErlangList [mkIntList [1,2,3,4], mkInt 6, mkInt 7, mkBinary [1,2,3,4,6,7]]]
+            mkBinary [1,2,3,4,6,7,1,2,3,4,6,7] `shouldEqualOk` r
+        it "direct binary" do
+            r <- exec_may_throw BIF.erlang__iolist_to_binary__1 [mkBinary [1,3,3,7]]
+            mkBinary [1,3,3,7] `shouldEqualOk` r
+        it "improperList 1" do
+            -- end of IOLIST can be a binary
+            r <- exec_may_throw BIF.erlang__iolist_to_binary__1 [ErlangCons (mkInt 1) (mkBinary [2])]
+            mkBinary [1,2] `shouldEqualOk` r
+        it "improperList 2" do
+            -- end of IOLIST is either a binary or a empty list
+            r <- exec_may_throw BIF.erlang__iolist_to_binary__1 [ErlangCons (mkInt 1) (mkInt 2)]
+            make_err `shouldEqual` r
+        it "iolists contain bytes not ints ;)" do
+            r1 <- exec_may_throw BIF.erlang__iolist_to_binary__1 [mkIntList [255]]
+            mkBinary [255] `shouldEqualOk` r1
+            r2 <- exec_may_throw BIF.erlang__iolist_to_binary__1 [mkIntList [256]]
+            make_err `shouldEqual` r2
+
+    describe "iolist_size" do
+        it "sample" do
+            r <- exec_may_throw BIF.erlang__iolist_size__1 [mkIntList [1,2,3,4]]
+            mkInt 4 `shouldEqualOk` r
+
+    describe "iolist_to_iovec" do
+        it "sample" do
+            r <- exec_may_throw BIF.erlang__iolist_to_iovec__1 [mkIntList [1,2,3,4]]
+            (arrayToErlangList [mkBinary [1,2,3,4]]) `shouldEqualOk` r

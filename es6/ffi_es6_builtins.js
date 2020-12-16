@@ -909,6 +909,7 @@ function do_onload(name, module) {
                  };
         const ar1_aliases = { "not": "op_not"
                             , "-": "op_neg"
+                            , "+": "op_unary_plus"
                             };
         for(var v in op_aliases) {
             module["erlang__" + v + "__2"] = module["erlang__" + op_aliases[v]]

@@ -219,10 +219,9 @@ split buf pats opts =
         then case acc of
              DL.Nil ->  -- If we didn't find anything then split at all
                DL.Cons buf DL.Nil
-             DL.Cons lastCut rest ->  -- Add right side to last result
+             DL.Cons _lastCut rest ->  -- Add right side to last result
                DL.reverse $ DL.Cons
-                              (Buffer.slice
-                               (last - rawSize lastCut + 1) -- Rollback to lastCut's beginning
+                              (Buffer.slice last
                                (rawSize buf) -- Take everything
                                buf)
                               acc

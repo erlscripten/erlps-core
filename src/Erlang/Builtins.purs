@@ -1642,8 +1642,17 @@ erlang__dmonitor_node__3 args = unimplemented "erlang__dmonitor_node__3"
 erlang__dmonitor_node__3 [_,_,_] = EXC.badarg unit
 erlang__dmonitor_node__3 args = EXC.badarity (ErlangFun 3 erlang__dmonitor_node__3) args
 
+erlang__fun_info__1 :: ErlangFun
+erlang__fun_info__1 args = unimplemented "erlang__fun_info__1"
+erlang__fun_info__1 [_] = EXC.badarg unit
+erlang__fun_info__1 args = EXC.badarity (ErlangFun 1 erlang__fun_info__1) args
+
 erlang__fun_info__2 :: ErlangFun
-erlang__fun_info__2 args = unimplemented "erlang__fun_info__2"
+erlang__fun_info__2 [ErlangFun a _, k@(ErlangAtom "type")] = ErlangTuple [k, ErlangAtom "external"]
+erlang__fun_info__2 [ErlangFun a _, k@(ErlangAtom "arity")] = ErlangTuple [k, ErlangInt $ DBI.fromInt a]
+erlang__fun_info__2 [ErlangFun a _, k@(ErlangAtom "env")] = ErlangTuple [k, ErlangEmptyList]
+erlang__fun_info__2 [ErlangFun a _, k@(ErlangAtom "module")] = ErlangTuple [k, ErlangAtom "fixme"]
+erlang__fun_info__2 [ErlangFun a _, k@(ErlangAtom "name")] = ErlangTuple [k, ErlangAtom "fixme"]
 erlang__fun_info__2 [_,_] = EXC.badarg unit
 erlang__fun_info__2 args = EXC.badarity (ErlangFun 2 erlang__fun_info__2) args
 
@@ -1870,11 +1879,6 @@ erlang__setnode__2 args = EXC.badarity (ErlangFun 2 erlang__setnode__2) args
 erlang__node__0 :: ErlangFun
 erlang__node__0 [] = ErlangAtom "nonode@nohost"
 erlang__node__0 args = EXC.badarity (ErlangFun 0 erlang__node__0) args
-
-erlang__fun_info__1 :: ErlangFun
-erlang__fun_info__1 args = unimplemented "erlang__fun_info__1"
-erlang__fun_info__1 [_] = EXC.badarg unit
-erlang__fun_info__1 args = EXC.badarity (ErlangFun 1 erlang__fun_info__1) args
 
 erlang__exit__1 :: ErlangFun
 erlang__exit__1 [arg] = EXC.exit arg

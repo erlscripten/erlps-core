@@ -250,12 +250,13 @@ lists__reverse__2 [l, acc] = go l acc where
 lists__reverse__2 args = EXC.badarity (ErlangFun 2 lists__reverse__2) args
 
 lists__member__2 :: ErlangFun
-lists__member__2 [_, ErlangEmptyList] = boolToTerm false
-lists__member__2 [x, ErlangCons el rest] =
-  case erlang__op_exactEq [x, el] of
-    ErlangAtom "true" -> ErlangAtom "true"
-    _                 -> lists__member__2 [x, rest]
-lists__member__2 [_,_] = EXC.badarg unit
+lists__member__2 [x, l] = go x l where
+  go _ ErlangEmptyList = ErlangAtom "false"
+  go x (ErlangCons el rest) =
+    case erlang__op_exactEq [x, el] of
+      ErlangAtom "true" -> ErlangAtom "true"
+      _                 -> lists__member__2 [x, rest]
+  go _ _ = EXC.badarg unit
 lists__member__2 args = EXC.badarity (ErlangFun 2 lists__member__2) args
 
 lists__keyfind__3 :: ErlangFun

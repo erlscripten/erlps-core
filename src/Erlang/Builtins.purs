@@ -243,9 +243,10 @@ lists__keymember__3 [_,_,_] = EXC.badarg unit
 lists__keymember__3 args = EXC.badarity (ErlangFun 3 lists__keymember__3) args
 
 lists__reverse__2 :: ErlangFun
-lists__reverse__2 [ErlangEmptyList, acc] = acc
-lists__reverse__2 [ErlangCons h t, acc] = lists__reverse__2 [t, ErlangCons h acc]
-lists__reverse__2 [_,_] = EXC.badarg unit
+lists__reverse__2 [l, acc] = go l acc where
+  go ErlangEmptyList acc = acc
+  go (ErlangCons h t) acc = go t (ErlangCons h acc)
+  go _ _ = EXC.badarg unit
 lists__reverse__2 args = EXC.badarity (ErlangFun 2 lists__reverse__2) args
 
 lists__member__2 :: ErlangFun

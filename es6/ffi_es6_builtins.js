@@ -71,8 +71,6 @@ class DefaultScheduler {
         // Controls how many tasks are called at a time per process
         this.reductions_per_process = reductions_per_process;
         this.queues = new Map();
-        console.log("SCHEDULER");
-        console.log(this.isRunning);
         this.run();
     }
     addToQueue(pid, task) {
@@ -90,13 +88,11 @@ class DefaultScheduler {
         this.isRunning = false;
     }
     _run(run) {
-        console.log("_run()");
         this.invokeLater(() => {
             run();
         });
     }
     run() {
-        console.log("run()");
         if (this.isRunning) {
             this._run(this.run.bind(this));
         }
@@ -216,7 +212,6 @@ class Process {
         this.monitors = [];
     }
     start() {
-        console.log("Process start");
         const function_scope = this;
         let machine = this.main();
         this.system.schedule(function () {
@@ -251,7 +246,6 @@ class Process {
         this.system.remove_proc(this.pid, reason);
     }
     receive(fun) {
-        console.log("RECEIVE");
         let value = process_state.NOMATCH;
         let messages = this.mailbox.get();
         for (let i = 0; i < messages.length; i++) {
@@ -271,7 +265,6 @@ class Process {
         return value;
     }
     run(machine, step) {
-        console.log("Process run");
         const function_scope = this;
         if (!step.done) {
             let value = step.value;
@@ -345,7 +338,6 @@ class ProcessSystem {
      * @param args Either a generator function or a module, function and arguments
      */
     spawn(...args) {
-        console.log("SPAAAWN")
         if (args.length === 1) {
             let fun = args[0];
             return this.add_proc(fun, [], false, false).pid;
@@ -1036,7 +1028,6 @@ function do_spawn_1(action) {
             try {
                 return action();
             } catch (e) {
-                console.log("AAAAAA")
             }
         });
         return pid_ctr(pid.id);
@@ -1054,8 +1045,6 @@ function do_self_0(pid_ctr) {
 
 function do_send_2(pid_id) {
     return function(term) {
-        console.log("SEND")
-        console.log(term);
         return term;
     }
 }
@@ -1063,20 +1052,15 @@ function do_send_2(pid_id) {
 function do_receive_2(match_fun) {
     return function(timeout_val) {
         return function(atom_ctr) {
-            console.log(arguments)
-            console.log("RRRRR")
-            console.log(match_fun);
-            console.log(timeout_val);
             if (timeout_val < 0) {
                 timeout_val = 0;
             } else if(timeout_val == 0) {
                 timeout_val = 1;
             }
 
-            console.log("Calling receive")
             // TIME FOR A VERY DIRTY HACK :(
             console.log ( (function*() {yield system.receive( (msg) => {
-                console.log("RECEIVED")
+                console.log("RECEIVED: ", msg)
                 });
             })().next());
         }

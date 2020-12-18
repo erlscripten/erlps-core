@@ -1460,7 +1460,8 @@ erlang__spawn_opt__5 [_,_,_,_,_] = EXC.badarg unit
 erlang__spawn_opt__5 args = EXC.badarity (ErlangFun 5 erlang__spawn_opt__5) args
 
 erlang__size__1 :: ErlangFun
-erlang__size__1 args = unimplemented "erlang__size__1"
+erlang__size__1 [ErlangTuple a] = ErlangInt $ DBI.fromInt $ DA.length a
+erlang__size__1 [ErlangBinary buf] = BIN.size buf
 erlang__size__1 [_] = EXC.badarg unit
 erlang__size__1 args = EXC.badarity (ErlangFun 1 erlang__size__1) args
 

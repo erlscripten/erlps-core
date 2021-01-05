@@ -1397,6 +1397,9 @@ erlang__bit_size__1 [ErlangBinary buf] = ErlangInt $ DBI.fromInt $ 8 * (BIN.rawS
 erlang__bit_size__1 [_] = EXC.badarg unit
 erlang__bit_size__1 args = EXC.badarity (ErlangFun 1 erlang__bit_size__1) args
 
+erlang__bitsize__1 :: ErlangFun
+erlang__bitsize__1 args = erlang__bit_size__1 args
+
 erlang__check_process_code__2 :: ErlangFun
 erlang__check_process_code__2 args = unimplemented "erlang__check_process_code__2"
 erlang__check_process_code__2 [_,_] = EXC.badarg unit
@@ -1404,11 +1407,6 @@ erlang__check_process_code__2 args = EXC.badarity (ErlangFun 2 erlang__check_pro
 
 erlang__system_monitor__0 :: ErlangFun
 erlang__system_monitor__0 args = unimplemented "erlang__system_monitor__0"
-
-erlang__bitsize__1 :: ErlangFun
-erlang__bitsize__1 args = unimplemented "erlang__bitsize__1"
-erlang__bitsize__1 [_] = EXC.badarg unit
-erlang__bitsize__1 args = EXC.badarity (ErlangFun 1 erlang__bitsize__1) args
 
 erlang__nodes__1 :: ErlangFun
 erlang__nodes__1 args = unimplemented "erlang__nodes__1"

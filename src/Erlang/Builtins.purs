@@ -1465,8 +1465,8 @@ erlang__spawn_opt__5 [_,_,_,_,_] = EXC.badarg unit
 erlang__spawn_opt__5 args = EXC.badarity (ErlangFun 5 erlang__spawn_opt__5) args
 
 erlang__size__1 :: ErlangFun
-erlang__size__1 [ErlangTuple a] = ErlangInt $ DBI.fromInt $ DA.length a
-erlang__size__1 [ErlangBinary buf] = BIN.size buf
+erlang__size__1 [ErlangTuple t] = ErlangInt (DBI.fromInt (DA.length t))
+erlang__size__1 [ErlangBinary b] = BIN.size b
 erlang__size__1 [_] = EXC.badarg unit
 erlang__size__1 args = EXC.badarity (ErlangFun 1 erlang__size__1) args
 
@@ -2210,6 +2210,8 @@ binary__encode_unsigned__1 [_] = EXC.badarg unit
 binary__encode_unsigned__1 args = EXC.badarity (ErlangFun 1 binary__encode_unsigned__1) args
 
 binary__encode_unsigned__2 :: ErlangFun
+binary__encode_unsigned__2 [ErlangInt i, _] | DM.Just 0 <- H.bigIntToInt i =
+  ErlangBinary (BIN.fromFoldable [0])
 binary__encode_unsigned__2 [ErlangInt i, ErlangAtom "little"] =
   ErlangBinary $ BIN.from_int_bound i DM.Nothing 8 BIN.Little
 binary__encode_unsigned__2 [ErlangInt i, ErlangAtom "big"] =

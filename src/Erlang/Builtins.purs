@@ -819,7 +819,7 @@ erlang__pid_to_list__1 [_] = EXC.badarg unit
 erlang__pid_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__pid_to_list__1) args
 
 erlang__binary_to_integer__2 :: ErlangFun
-erlang__binary_to_integer__2 args = unimplemented "erlang__binary_to_integer__2"
+erlang__binary_to_integer__2 [ErlangBinary bin, base] = erlang__list_to_integer__2 [BIN.to_erlang_list bin, base]
 erlang__binary_to_integer__2 [_,_] = EXC.badarg unit
 erlang__binary_to_integer__2 args = EXC.badarity (ErlangFun 2 erlang__binary_to_integer__2) args
 
@@ -932,8 +932,7 @@ erlang__atom_to_binary__2 [_,_] = EXC.badarg unit
 erlang__atom_to_binary__2 args = EXC.badarity (ErlangFun 2 erlang__atom_to_binary__2) args
 
 erlang__binary_to_integer__1 :: ErlangFun
-erlang__binary_to_integer__1 args = unimplemented "erlang__binary_to_integer__1"
-erlang__binary_to_integer__1 [_] = EXC.badarg unit
+erlang__binary_to_integer__1 [arg] = erlang__binary_to_integer__2 [arg, ErlangInt $ DBI.fromInt 10]
 erlang__binary_to_integer__1 args = EXC.badarity (ErlangFun 1 erlang__binary_to_integer__1) args
 
 erlang__atom_to_list__1 :: ErlangFun

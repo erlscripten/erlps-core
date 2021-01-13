@@ -1515,6 +1515,7 @@ var RUNTIME = function () {
             if (f) {
               return f(argumentArray);
             } else {
+              console.log("Undefined module: " + mName + ":" + fName);
               return undefCallback();
             }
           }

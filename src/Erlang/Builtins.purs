@@ -1,34 +1,36 @@
 module Erlang.Builtins where
 
+import Control.Monad
+import Effect
+import Effect.Now
+import Effect.Unsafe
 import Erlang.Type
-import Erlang.Exception as EXC
-import Erlang.Helpers as H
-import Erlang.Binary as BIN
+import Math
+import Partial.Unsafe
 import Prelude
-import Data.Tuple as DT
-import Data.List as DL
-import Data.Maybe as DM
+
 import Data.Array as DA
 import Data.Array.NonEmpty as DAN
-import Data.List as DL
-import Data.Int as DI
-import Data.UInt as DU
-import Data.Int.Bits as DIB
-import Data.Map as Map
-import Data.String as DSTR
 import Data.BigInt as DBI
-import Data.String.CodePoints as CodePoints
 import Data.Char as Char
-import Data.Number.Approximate as DNA
 import Data.DateTime.Instant as TINS
+import Data.EuclideanRing (mod)
+import Data.Int as DI
+import Data.Int.Bits as DIB
+import Data.List as DL
+import Data.Traversable
+import Data.Map as Map
+import Data.Maybe as DM
+import Data.Number.Approximate as DNA
+import Data.String as DSTR
+import Data.String.CodePoints as CodePoints
 import Data.Time.Duration as TDUR
-import Effect.Now
-import Math
-import Control.Monad
+import Data.Tuple as DT
+import Data.UInt as DU
 import Effect.Exception (throw)
-import Effect
-import Effect.Unsafe
-import Partial.Unsafe
+import Erlang.Binary as BIN
+import Erlang.Exception as EXC
+import Erlang.Helpers as H
 
 unimplemented :: String -> ErlangTerm
 unimplemented name = unsafePerformEffect (throw $ "unimplemented BIF: " <> name)
@@ -2183,6 +2185,25 @@ code__ensure_loaded__1 :: ErlangFun
 code__ensure_loaded__1 [ErlangAtom mName] = do_ensure_loaded mName
 code__ensure_loaded__1 [_] = EXC.function_clause unit
 code__ensure_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_loaded__1) args
+
+code__ensure_modules_loaded__1 :: ErlangFun
+code__ensure_modules_loaded__1 [emodules]
+  | DM.Just modules <- erlangListToList emodules >>=
+                       traverse (\term -> case term of
+                                    ErlangAtom mod -> DM.Just mod
+                                    _ -> DM.Nothing
+                                ) =
+    case go modules ErlangEmptyList of
+      ErlangEmptyList -> ErlangAtom "ok"
+      shiet -> shiet
+      where
+        go DL.Nil acc = lists__reverse__2 [acc, ErlangEmptyList]
+        go (DL.Cons m rest) acc =
+          case do_ensure_loaded m of
+            ErlangAtom "ok" -> go rest acc
+            err -> go rest (ErlangCons err acc)
+code__ensure_modules_loaded__1 [_] = EXC.function_clause unit
+code__ensure_modules_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_modules_loaded__1) args
 
 --------------------------------------------------------------------------------
 

@@ -1505,6 +1505,7 @@ var RUNTIME = function () {
               module = do_onload(moduleName, module);
               loaded_code.set(moduleName, module);
             } else {
+              console.log("Undefined module: " + mName + ":" + fName);
               return undefCallback();
             }
           }

@@ -43,6 +43,9 @@ instance showErlangTerm :: Show ErlangTerm where
                       _ -> DM.Nothing
                    )
             = show $ DS.fromCodePointArray $ DA.fromFoldable l
+    show term
+      | DM.Just l <- erlangListToList term
+      = show l
     show (ErlangInt a) =
         DBI.toString a
     show (ErlangFloat a) =
@@ -54,7 +57,7 @@ instance showErlangTerm :: Show ErlangTerm where
     show ErlangEmptyList =
         "[]"
     show (ErlangBinary a) =
-        show $ unsafePerformEffect $ toArray a
+        "<<" <> show (unsafePerformEffect $ toArray a) <> ">>"
     show (ErlangTuple a) =
         show a
     show (ErlangFun arity _) =

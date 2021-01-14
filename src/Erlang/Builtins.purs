@@ -2195,13 +2195,15 @@ code__ensure_modules_loaded__1 [emodules]
                                 ) =
     case go modules ErlangEmptyList of
       ErlangEmptyList -> ErlangAtom "ok"
-      shiet -> shiet
+      shiet -> ErlangTuple [ErlangAtom "error", shiet]
       where
         go DL.Nil acc = lists__reverse__2 [acc, ErlangEmptyList]
         go (DL.Cons m rest) acc =
           case do_ensure_loaded m of
             ErlangTuple [ErlangAtom "module", ErlangAtom lm] | lm == m -> go rest acc
-            err -> go rest (ErlangCons err acc)
+            ErlangTuple [ErlangAtom "error", err] ->
+              go rest (ErlangCons (ErlangTuple [ErlangAtom m, err]) acc)
+            err -> unsafePerformEffect (throw $ "wtf in ensure_modules_loaded")
 code__ensure_modules_loaded__1 [_] = EXC.function_clause unit
 code__ensure_modules_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_modules_loaded__1) args
 

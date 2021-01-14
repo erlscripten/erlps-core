@@ -2200,7 +2200,7 @@ code__ensure_modules_loaded__1 [emodules]
         go DL.Nil acc = lists__reverse__2 [acc, ErlangEmptyList]
         go (DL.Cons m rest) acc =
           case do_ensure_loaded m of
-            ErlangAtom "ok" -> go rest acc
+            ErlangTuple [ErlangAtom "module", ErlangAtom lm] | lm == m -> go rest acc
             err -> go rest (ErlangCons err acc)
 code__ensure_modules_loaded__1 [_] = EXC.function_clause unit
 code__ensure_modules_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_modules_loaded__1) args

@@ -1,18 +1,22 @@
 module Erlang.Type where
 
 import Prelude
-import Node.Buffer (Buffer, toArray, fromArray, toArray, concat)
-import Data.List as DL
+
 import Data.Array as DA
 import Data.BigInt as DBI
-import Data.Maybe as DM
-import Data.Map as Map
 import Data.Char as DC
-import Data.Tuple as DT
+import Data.Int as DI
+import Data.List as DL
+import Data.Map as Map
+import Data.Maybe as DM
+import Data.String as DS
 import Data.String.CodePoints as DSCP
+import Data.Traversable (traverse)
+import Data.Tuple as DT
 import Effect (Effect)
-import Effect.Unsafe (unsafePerformEffect)
 import Effect.Exception (throw)
+import Effect.Unsafe (unsafePerformEffect)
+import Node.Buffer (Buffer, concat, toArray)
 
 type ErlangFun = Array ErlangTerm -> ErlangTerm
 
@@ -30,6 +34,15 @@ data ErlangTerm
     | ErlangPID       Int
 
 instance showErlangTerm :: Show ErlangTerm where
+    show term
+      | DM.Just l <- erlangListToList term >>=
+          traverse (\t -> case t of
+                      ErlangInt bi -> DI.fromNumber (DBI.toNumber bi) >>=
+                         \i -> if i >= 32 && i <= 126
+                               then map DSCP.codePointFromChar $ DC.fromCharCode i else DM.Nothing
+                      _ -> DM.Nothing
+                   )
+            = show $ DS.fromCodePointArray $ DA.fromFoldable l
     show (ErlangInt a) =
         DBI.toString a
     show (ErlangFloat a) =

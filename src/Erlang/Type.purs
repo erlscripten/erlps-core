@@ -38,7 +38,7 @@ instance showErlangTerm :: Show ErlangTerm where
       | DM.Just l <- erlangListToList term >>=
           traverse (\t -> case t of
                       ErlangInt bi -> DI.fromNumber (DBI.toNumber bi) >>=
-                         \i -> if i >= 32 && i <= 126
+                         \i -> if (i >= 32 && i <= 126) || (i >= 8 && i <= 12)
                                then map DSCP.codePointFromChar $ DC.fromCharCode i else DM.Nothing
                       _ -> DM.Nothing
                    )

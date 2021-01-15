@@ -33,6 +33,9 @@ data ErlangTerm
     | ErlangReference Int
     | ErlangPID       Int
 
+foreign import showArrayImplGeneral
+  :: forall a. String -> String -> String -> (a -> String) -> Array a -> String
+
 instance showErlangTerm :: Show ErlangTerm where
     show ErlangEmptyList =
         "[]"
@@ -57,15 +60,15 @@ instance showErlangTerm :: Show ErlangTerm where
     show (ErlangCons h t) =
         "[" <> show h <> "|" <> show t <> "]"
     show (ErlangBinary a) =
-        "<<" <> show (unsafePerformEffect $ toArray a) <> ">>"
+        showArrayImplGeneral "<<" ">>" "," show (unsafePerformEffect $ toArray a)
     show (ErlangTuple a) =
-        "t" <> show a
+        showArrayImplGeneral "{" "}" "," show a
     show (ErlangFun arity _) =
         "<some_function/" <> show arity <> ">"
     show (ErlangAtom atom) =
         atom
     show (ErlangMap m) =
-        show m
+        showArrayImplGeneral "#{" "}" "," (\(DT.Tuple k v) -> show k <> " => " <> show v) (Map.toUnfoldable m)
     show (ErlangReference a) =
         show a
     show (ErlangPID a) =

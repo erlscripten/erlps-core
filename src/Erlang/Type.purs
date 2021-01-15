@@ -68,7 +68,7 @@ instance showErlangTerm :: Show ErlangTerm where
         "<some_function/" <> show arity <> ">"
     show (ErlangAtom atom) =
         if DA.any 
-             (\cp -> let i = unsafeCoerce cp in i < 48 || (i > 57 && i < 65) || (i > 90 && i < 97) || i > 122 ) (DS.toCodePointArray atom)
+             (\cp -> let i = unsafeCoerce cp in i < 48 || (i > 57 && i < 65) || (i > 90 && i < 95) || i == 96 || i > 122) (DS.toCodePointArray atom)
            || DM.maybe false ((\cp -> let i = unsafeCoerce cp.head in i < 97 || i > 122 )) (DSCP.uncons atom)
         then "'" <> atom <> "'" else atom
     show (ErlangMap m) =

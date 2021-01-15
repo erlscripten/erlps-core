@@ -34,6 +34,8 @@ data ErlangTerm
     | ErlangPID       Int
 
 instance showErlangTerm :: Show ErlangTerm where
+    show ErlangEmptyList =
+        "[]"
     show term
       | DM.Just l <- erlangListToList term >>=
           traverse (\t -> case t of
@@ -45,7 +47,7 @@ instance showErlangTerm :: Show ErlangTerm where
             = show $ DS.fromCodePointArray $ DA.fromFoldable l
     show term
       | DM.Just l <- erlangListToList term
-      = show l
+      = show (DA.fromFoldable l)
     show (ErlangInt a) =
         DBI.toString a
     show (ErlangFloat a) =
@@ -54,12 +56,10 @@ instance showErlangTerm :: Show ErlangTerm where
         show l
     show (ErlangCons h t) =
         "[" <> show h <> "|" <> show t <> "]"
-    show ErlangEmptyList =
-        "[]"
     show (ErlangBinary a) =
         "<<" <> show (unsafePerformEffect $ toArray a) <> ">>"
     show (ErlangTuple a) =
-        show a
+        "t" <> show a
     show (ErlangFun arity _) =
         "<some_function/" <> show arity <> ">"
     show (ErlangAtom atom) =

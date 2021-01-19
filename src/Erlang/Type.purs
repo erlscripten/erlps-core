@@ -133,9 +133,6 @@ instance eqErlangTermInst :: Eq ErlangTerm where
     eq = eqErlangTerm strongNumEq
 
 
--- floatCmp :: Number -> Number -> Ordering
--- floatCmp a b = if floatEq a b then EQ else compare a b
-
 weakNumCmp :: ErlangTerm -> ErlangTerm -> Ordering
 weakNumCmp (ErlangInt a) (ErlangFloat b) = compare (DBI.toNumber a) b
 weakNumCmp (ErlangFloat a) (ErlangInt b) = compare a (DBI.toNumber b)
@@ -246,6 +243,14 @@ instance semigroupErlangTerm :: Semigroup ErlangTerm where
      append (ErlangBinary a) (ErlangBinary b) = ErlangBinary $ unsafePerformEffect (concatArrays a b)
      append _ _ = unsafePerformEffect $ throw "Invalid append"
 
+newtype WeakErlangTerm = WeakErlangTerm ErlangTerm
+unpackWeak :: WeakErlangTerm -> ErlangTerm
+unpackWeak (WeakErlangTerm t) = t
+
+instance eqWeakErlangTerm :: Eq WeakErlangTerm where
+  eq e1 e2 = weakEq (unpackWeak e1) (unpackWeak e2)
+instance ordWeakErlangTerm :: Ord WeakErlangTerm where
+  compare e1 e2 = weakCmp (unpackWeak e1) (unpackWeak e2)
 
 erlangListToList :: ErlangTerm -> DM.Maybe (DL.List ErlangTerm)
 erlangListToList = go DL.Nil where

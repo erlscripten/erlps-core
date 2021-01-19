@@ -237,7 +237,6 @@ var RUNTIME = function () {
     }, {
       key: "_run",
       value: function _run(run) {
-        console.log("_run()");
         this.invokeLater(function () {
           run();
         });
@@ -245,8 +244,6 @@ var RUNTIME = function () {
     }, {
       key: "run",
       value: function run() {
-        console.log("run()");
-
         if (this.isRunning) {
           this._run(this.run.bind(this));
         } else {
@@ -610,8 +607,6 @@ var RUNTIME = function () {
        * @param args Either a generator function or a module, function and arguments
        */
       value: function spawn() {
-        console.log("SPAAAWN");
-
         if (arguments.length === 1) {
           var fun = arguments.length <= 0 ? undefined : arguments[0];
           return this.add_proc(fun, [], false, false).pid;

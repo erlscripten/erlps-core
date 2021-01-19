@@ -1,6 +1,7 @@
 module Erlang.Builtins where
 
 import Control.Monad
+import Data.Traversable
 import Effect
 import Effect.Now
 import Effect.Unsafe
@@ -18,7 +19,6 @@ import Data.EuclideanRing (mod)
 import Data.Int as DI
 import Data.Int.Bits as DIB
 import Data.List as DL
-import Data.Traversable
 import Data.Map as Map
 import Data.Maybe as DM
 import Data.Number.Approximate as DNA
@@ -27,10 +27,13 @@ import Data.String.CodePoints as CodePoints
 import Data.Time.Duration as TDUR
 import Data.Tuple as DT
 import Data.UInt as DU
+import Data.Unit (unit)
 import Effect.Exception (throw)
 import Erlang.Binary as BIN
 import Erlang.Exception as EXC
+import Erlang.Helpers (isEBinary, isEList)
 import Erlang.Helpers as H
+import Node.Buffer (Buffer)
 
 unimplemented :: String -> ErlangTerm
 unimplemented name = unsafePerformEffect (throw $ "unimplemented BIF: " <> name)
@@ -784,13 +787,29 @@ erlang__iolist_to_iovec__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_to_io
 
 erlang__iolist_to_binary__1 :: ErlangFun
 erlang__iolist_to_binary__1 [b@(ErlangBinary _)] = b
-erlang__iolist_to_binary__1 [el]
-  | DM.Just l <- H.erlangListToFlatList el = ErlangBinary
-    $ BIN.fromFoldable
-    $ map (\x -> case x of ErlangInt bi | DM.Just i <- H.bigIntToInt bi -> i
-                           _ -> EXC.badarg unit
-          )
-    $ l
+erlang__iolist_to_binary__1 [el] | H.isEList el = ErlangBinary
+    $ BIN.fromFoldable $ DL.reverse $ flatInts DL.Nil $ el where
+
+      flatInts :: DL.List Int -> ErlangTerm -> DL.List Int
+      flatInts acc (ErlangBinary buf) =
+        flatInts acc $
+        arrayToErlangList $
+        map (DBI.fromInt >>> ErlangInt) $
+        BIN.toArray $
+        buf
+      flatInts acc (ErlangInt bi)
+        | DM.Just i <- H.bigIntToInt bi =
+          if i >= 0 && i < 256
+          then DL.Cons i acc
+          else EXC.badarg unit
+      flatInts acc (ErlangCons h t) =
+        if isEList t || isEBinary t
+        then flatInts (flatInts' acc h) t
+        else EXC.badarg unit
+      flatInts acc ErlangEmptyList = acc
+      flatInts _ _ = EXC.badarg unit
+
+      flatInts' x = flatInts x
 erlang__iolist_to_binary__1 [_] = EXC.badarg unit
 erlang__iolist_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_to_binary__1) args
 
@@ -800,14 +819,7 @@ erlang__iolist_size__1 args = erlang__byte_size__1 [erlang__iolist_to_binary__1 
 
 erlang__list_to_binary__1 :: ErlangFun
 erlang__list_to_binary__1 [ErlangBinary _] = EXC.badarg unit
-erlang__list_to_binary__1 [el]
-  | DM.Just l <- H.erlangListToFlatList el = ErlangBinary
-    $ BIN.fromFoldable
-    $ map (\x -> case x of ErlangInt bi | DM.Just i <- H.bigIntToInt bi -> i
-                           _ -> EXC.badarg unit
-          )
-    $ l
-erlang__list_to_binary__1 [_] = EXC.badarg unit
+erlang__list_to_binary__1 [el] = erlang__iolist_to_binary__1 [el]
 erlang__list_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__list_to_binary__1) args
 
 erlang__list_to_bitstring__1 :: ErlangFun

@@ -113,23 +113,3 @@ erlangListToString t =
                _ -> DM.Nothing
            )
   <#> (DA.fromFoldable >>> StrCP.fromCodePointArray)
-
-erlangListToFlatList :: ErlangTerm -> DM.Maybe (DL.List ErlangTerm)
-erlangListToFlatList b@(ErlangBinary _) = erlangListToFlatList $ ErlangCons b ErlangEmptyList
-erlangListToFlatList hopefulyAList
-  | DM.Just _ <- erlangListToList hopefulyAList
-  = DM.Just $ DL.reverse $ totallyFlatten DL.Nil hopefulyAList where
-    totallyFlatten :: DL.List ErlangTerm -> ErlangTerm -> DL.List ErlangTerm
-    totallyFlatten acc (ErlangBinary buf) =
-      totallyFlatten acc
-      $ arrayToErlangList
-      $ map (ErlangInt <<< DBI.fromInt)
-      $ unsafePerformEffect
-      $ Buffer.toArray
-      $ buf
-    totallyFlatten acc ErlangEmptyList = acc
-    totallyFlatten acc (ErlangCons h t) = totallyFlatten (totallyFlatten' acc h) t
-    totallyFlatten acc x = DL.Cons x acc
-
-    totallyFlatten' x = totallyFlatten x  -- TCO break
-erlangListToFlatList _ = DM.Nothing

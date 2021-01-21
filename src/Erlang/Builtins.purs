@@ -1265,7 +1265,10 @@ make_hash (ErlangAtom a) hash =
     hash * c_FUNNY_NUMBER1 + (hash_atom a)
 
 --make_hash (ErlangFloat a) hash = ...
---make_hash (ErlangBinary a) hash = ...
+make_hash (ErlangBinary buf) hash =
+    ((+) sz) $ ((*) c_FUNNY_NUMBER4) $ foldl (\acc el -> acc * c_FUNNY_NUMBER1 + (DU.fromInt el)) hash $ BIN.toArray buf
+    where
+        sz = DU.fromInt $ BIN.rawSize buf
 
 make_hash (ErlangTuple t) hash =
     (DA.foldl (\acc el -> make_hash el acc) hash t) * c_FUNNY_NUMBER9 + (DU.fromInt (DA.length t))

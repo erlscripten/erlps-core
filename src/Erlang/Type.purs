@@ -1,6 +1,7 @@
 module Erlang.Type where
 
 import Prelude
+import Unsafe.Coerce
 
 import Data.Array as DA
 import Data.BigInt as DBI
@@ -17,7 +18,6 @@ import Effect (Effect)
 import Effect.Exception (throw)
 import Effect.Unsafe (unsafePerformEffect)
 import Node.Buffer (Buffer, concat, toArray)
-import Unsafe.Coerce
 
 type ErlangFun = Array ErlangTerm -> ErlangTerm
 
@@ -60,6 +60,13 @@ instance showErlangTerm :: Show ErlangTerm where
         show l
     show (ErlangCons h t) =
         "[" <> show h <> "|" <> show t <> "]"
+    show (ErlangBinary a)
+      | DM.Just l <-
+          traverse (\i -> if (i >= 32 && i <= 126) || (i >= 8 && i <= 12)
+                          then map DSCP.codePointFromChar $ DC.fromCharCode i
+                          else DM.Nothing
+                   ) (unsafePerformEffect (toArray a))
+            = "<<" <> show (DS.fromCodePointArray $ DA.fromFoldable l) <> ">>"
     show (ErlangBinary a) =
         showArrayImplGeneral "<<" ">>" "," show (unsafePerformEffect $ toArray a)
     show (ErlangTuple a) =
@@ -67,7 +74,7 @@ instance showErlangTerm :: Show ErlangTerm where
     show (ErlangFun arity _) =
         "<some_function/" <> show arity <> ">"
     show (ErlangAtom atom) =
-        if DA.any 
+        if DA.any
              (\cp -> let i = unsafeCoerce cp in i < 48 || (i > 57 && i < 65) || (i > 90 && i < 95) || i == 96 || i > 122) (DS.toCodePointArray atom)
            || DM.maybe false ((\cp -> let i = unsafeCoerce cp.head in i < 97 || i > 122 )) (DSCP.uncons atom)
         then "'" <> atom <> "'" else atom

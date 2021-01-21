@@ -1263,7 +1263,7 @@ make_hash (ErlangReference n) hash =
 
 make_hash (ErlangAtom a) hash =
     hash * c_FUNNY_NUMBER1 + (hash_atom a)
--- TODO: for floats ensure positive 0.0 xD
+make_hash (ErlangFloat (0.0)) hash = hash * c_FUNNY_NUMBER6 -- Covers 0.0 and -0.0
 make_hash (ErlangFloat f) hash | [b0,b1,b2,b3,b4,b5,b6,b7] <- map DU.fromInt $ BIN.float64ToArray f =
     hash * c_FUNNY_NUMBER6 + (DU.xor a b)
     where

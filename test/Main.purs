@@ -456,6 +456,9 @@ main =
         it "erlang:phash(0.0, 1 bsl 32)." do
             r <- exec_may_throw BIF.erlang__phash__2 [ErlangFloat 0.0, get2to32]
             mkBInt "1" `shouldEqualOk` r
+        it "erlang:phash(-0.0, 1 bsl 32)." do
+            r <- exec_may_throw BIF.erlang__phash__2 [ErlangFloat (-0.0), get2to32]
+            mkBInt "1" `shouldEqualOk` r
         it "erlang:phash(1337.1337, 1 bsl 32)." do
             r <- exec_may_throw BIF.erlang__phash__2 [ErlangFloat 1337.1337, get2to32]
             mkBInt "2821978480" `shouldEqualOk` r

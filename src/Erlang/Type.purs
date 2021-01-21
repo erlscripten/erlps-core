@@ -66,7 +66,7 @@ instance showErlangTerm :: Show ErlangTerm where
                           then map DSCP.codePointFromChar $ DC.fromCharCode i
                           else DM.Nothing
                    ) (unsafePerformEffect (toArray a))
-            = "<<" <> show (DS.fromCodePointArray $ DA.fromFoldable l) <> ">>"
+            = "<<" <> show (DS.fromCodePointArray l) <> ">>"
     show (ErlangBinary a) =
         showArrayImplGeneral "<<" ">>" "," show (unsafePerformEffect $ toArray a)
     show (ErlangTuple a) =

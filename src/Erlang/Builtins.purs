@@ -2322,3 +2322,8 @@ binary__copy__2 [ErlangBinary buf, ErlangInt btimes]
     $ buf
 binary__copy__2 [_, _] = EXC.badarg unit
 binary__copy__2 args = EXC.badarity (ErlangFun 2 binary__copy__2) args
+
+
+binary__bin_to_list__1 :: ErlangFun
+binary__bin_to_list__1 [bin] = erlang__binary_to_list__1 [bin]
+binary__bin_to_list__1 args = EXC.badarity (ErlangFun 1 binary__bin_to_list__1) args

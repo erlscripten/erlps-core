@@ -2302,7 +2302,7 @@ binary__part__3 [ErlangBinary buf, ErlangInt bloc, ErlangInt blen]
   = let {rloc, rlen} = if len < 0
                        then {rloc: loc + len, rlen: -len}
                        else {rloc: loc, rlen: len}
-    in if rloc < 0 || rloc + rlen >= BIN.rawSize buf
+    in if rloc < 0 || rloc + rlen > BIN.rawSize buf
        then EXC.badarg unit
        else ErlangBinary (Buffer.slice rloc rlen buf)
 binary__part__3 [_, _, _] = EXC.badarg unit

@@ -2300,7 +2300,7 @@ binary__part__3 [ErlangBinary buf, ErlangInt bloc, ErlangInt blen]
   | DM.Just loc <- H.bigIntToInt bloc
   , DM.Just len <- H.bigIntToInt blen
   = let {rloc, rlen} = if len < 0
-                       then {rloc: loc - len, rlen: -len}
+                       then {rloc: loc + len, rlen: -len}
                        else {rloc: loc, rlen: len}
     in if rloc < 0 || rloc + rlen >= BIN.rawSize buf
        then EXC.badarg unit

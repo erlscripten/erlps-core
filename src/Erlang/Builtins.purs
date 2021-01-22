@@ -34,6 +34,7 @@ import Erlang.Exception as EXC
 import Erlang.Helpers (isEBinary, isEList)
 import Erlang.Helpers as H
 import Node.Buffer (Buffer)
+import Node.Buffer as Buffer
 
 unimplemented :: String -> ErlangTerm
 unimplemented name = unsafePerformEffect (throw $ "unimplemented BIF: " <> name)
@@ -2286,3 +2287,38 @@ binary__split__3 [ErlangBinary buf, epat, eopts]
                        ) opts
 binary__split__3 [_, _, _] = EXC.badarg unit
 binary__split__3 args = EXC.badarity (ErlangFun 3 binary__split__3) args
+
+
+binary__part__2 :: ErlangFun
+binary__part__2 [buf, ErlangTuple [loc, len]] = binary__part__3 [buf, loc, len]
+binary__part__2 [_, _] = EXC.badarg unit
+binary__part__2 args = EXC.badarity (ErlangFun 2 binary__part__2) args
+
+
+binary__part__3 :: ErlangFun
+binary__part__3 [ErlangBinary buf, ErlangInt bloc, ErlangInt blen]
+  | DM.Just loc <- H.bigIntToInt bloc
+  , DM.Just len <- H.bigIntToInt blen
+  = let {rloc, rlen} = if len < 0
+                       then {rloc: loc - len, rlen: -len}
+                       else {rloc: loc, rlen: len}
+    in if rloc < 0 || rloc + rlen >= BIN.rawSize buf
+       then EXC.badarg unit
+       else ErlangBinary (Buffer.slice rloc rlen buf)
+binary__part__3 [_, _, _] = EXC.badarg unit
+binary__part__3 args = EXC.badarity (ErlangFun 3 binary__part__3) args
+
+
+binary__copy__2 :: ErlangFun
+binary__copy__2 [ErlangBinary buf, ErlangInt btimes]
+  | DM.Just times <- H.bigIntToInt btimes
+  = ErlangBinary
+    $ BIN.fromFoldable
+    $ let cycle 0 acc _ = acc
+          cycle n acc l =
+            cycle (n - 1) (l <> acc) l
+      in cycle times []
+    $ BIN.toArray
+    $ buf
+binary__copy__2 [_, _] = EXC.badarg unit
+binary__copy__2 args = EXC.badarity (ErlangFun 2 binary__copy__2) args

@@ -2299,12 +2299,12 @@ binary__part__3 :: ErlangFun
 binary__part__3 [ErlangBinary buf, ErlangInt bloc, ErlangInt blen]
   | DM.Just loc <- H.bigIntToInt bloc
   , DM.Just len <- H.bigIntToInt blen
-  = let {rloc, rlen} = if len < 0
-                       then {rloc: loc + len, rlen: -len}
-                       else {rloc: loc, rlen: len}
-    in if rloc < 0 || rloc + rlen > BIN.rawSize buf
+  = let {from, to} = if len < 0
+                       then {from: loc + len, to: loc}
+                       else {from: loc,       to: loc + len}
+    in if from < 0 || to > BIN.rawSize buf
        then EXC.badarg unit
-       else ErlangBinary (Buffer.slice rloc rlen buf)
+       else ErlangBinary (Buffer.slice from to buf)
 binary__part__3 [_, _, _] = EXC.badarg unit
 binary__part__3 args = EXC.badarity (ErlangFun 3 binary__part__3) args
 

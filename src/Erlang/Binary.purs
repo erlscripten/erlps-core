@@ -29,7 +29,10 @@ data Sign   = Signed | Unsigned
 data BinResult = Nah | Ok ErlangTerm Buffer.Buffer
 
 fromFoldable :: forall f. Foldable f => f Int -> Buffer
-fromFoldable f = unsafePerformEffect (Buffer.fromArray (DA.fromFoldable f))
+fromFoldable f = unsafePerformEffect $
+                 Buffer.fromArray $
+                 map (_ `mod` 256) $
+                 DA.fromFoldable f
 
 buffer :: ErlangTerm -> Buffer
 buffer (ErlangBinary buf) = buf

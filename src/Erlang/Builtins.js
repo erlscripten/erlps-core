@@ -209,8 +209,6 @@ var RUNTIME = function () {
 
       this.reductions_per_process = reductions_per_process;
       this.queues = new Map();
-      console.log("SCHEDULER");
-      console.log(this.isRunning);
       this.run();
     }
 
@@ -430,7 +428,6 @@ var RUNTIME = function () {
     _createClass(Process, [{
       key: "start",
       value: function start() {
-        console.log("Process start");
         var function_scope = this;
         var machine = this.main();
         this.system.schedule(function () {
@@ -494,7 +491,6 @@ var RUNTIME = function () {
     }, {
       key: "receive",
       value: function receive(fun) {
-        console.log("RECEIVE");
         var value = process_state.NOMATCH;
         var messages = this.mailbox.get();
 
@@ -518,7 +514,6 @@ var RUNTIME = function () {
     }, {
       key: "run",
       value: function run(machine, step) {
-        console.log("Process run");
         var function_scope = this;
 
         if (!step.done) {
@@ -1533,7 +1528,6 @@ var RUNTIME = function () {
               case 4:
                 _context4.prev = 4;
                 _context4.t0 = _context4["catch"](0);
-                console.log("AAAAAA");
 
               case 7:
               case "end":
@@ -1557,8 +1551,6 @@ var RUNTIME = function () {
 
   function do_send_2(pid_id) {
     return function (term) {
-      console.log("SEND");
-      console.log(term);
       return term;
     };
   }
@@ -1566,10 +1558,6 @@ var RUNTIME = function () {
   function do_receive_2(match_fun) {
     return function (timeout_val) {
       return function (atom_ctr) {
-        console.log(arguments);
-        console.log("RRRRR");
-        console.log(match_fun);
-        console.log(timeout_val);
 
         if (timeout_val < 0) {
           timeout_val = 0;
@@ -1577,7 +1565,7 @@ var RUNTIME = function () {
           timeout_val = 1;
         }
 
-        console.log("Calling receive"); // TIME FOR A VERY DIRTY HACK :(
+        // TIME FOR A VERY DIRTY HACK :(
 
         console.log( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
           return regeneratorRuntime.wrap(function _callee3$(_context5) {

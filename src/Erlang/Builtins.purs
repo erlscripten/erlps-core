@@ -2327,3 +2327,12 @@ binary__copy__2 args = EXC.badarity (ErlangFun 2 binary__copy__2) args
 binary__bin_to_list__1 :: ErlangFun
 binary__bin_to_list__1 [bin] = erlang__binary_to_list__1 [bin]
 binary__bin_to_list__1 args = EXC.badarity (ErlangFun 1 binary__bin_to_list__1) args
+
+binary__match__2 :: ErlangFun
+binary__match__2 _ = unimplemented "binary__match__2"
+
+binary__matches__2 :: ErlangFun
+binary__matches__2 _ = unimplemented "binary__matches__2"
+
+binary__compile_pattern__1 :: ErlangFun
+binary__compile_pattern__1 _ = unimplemented "binary__compile_pattern__1"

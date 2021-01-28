@@ -67,7 +67,7 @@ printErr (Left e) =
 exec :: ErlangFun -> Array ErlangTerm -> Aff ErlangTerm
 exec fun args = do
    res <- attempt $ execAff fun args
-   liftEffect $ log $ printErr res -- Uncomment for logs :)
+--   liftEffect $ log $ printErr res -- Uncomment for logs :)
    case res of
      Left _ -> pure err
      Right r -> pure $ makeOk r

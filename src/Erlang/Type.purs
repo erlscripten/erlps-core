@@ -1,3 +1,4 @@
+-- | Main Erlang term definitions and utilities
 module Erlang.Type
        ( ErlangFun
        , ErlangTerm(..)

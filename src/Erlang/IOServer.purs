@@ -1,22 +1,25 @@
 module Erlang.Ioserver where
 
-import Prelude (map, show, ($), (<>))
-import Effect.Unsafe (unsafePerformEffect)
-import Effect.Console (log)
-
 import Data.Maybe as DM
-import Partial.Unsafe (unsafePartial)
-import Erlang.Type (ErlangTerm(..), fromErl)
-import Data.String.CodePoints as StrCP
 import Data.String as Str
-import Unsafe.Coerce (unsafeCoerce)
+import Data.String.CodePoints as StrCP
+import Effect.Console (log)
+import Effect.Unsafe (unsafePerformEffect)
 import Erlang.Builtins as BIF
+import Erlang.Type (ErlangTerm(..), fromErl)
+import Erlang.Utils (runtimeError)
+import Partial.Unsafe (unsafePartial)
+import Prelude (map, show, ($), (<>))
+import Unsafe.Coerce (unsafeCoerce)
 
 wololo_codepoint :: Partial => ErlangTerm -> StrCP.CodePoint
 wololo_codepoint (ErlangInt res) = unsafeCoerce res
 
 toString :: ErlangTerm -> String
-toString x = unsafePartial $ Str.fromCodePointArray $ map wololo_codepoint $ DM.fromJust $ fromErl x
+toString x
+  | DM.Just str <- fromErl x
+  = unsafePartial $ Str.fromCodePointArray $ map wololo_codepoint $ str
+toString e = runtimeError $ "IOServer: toString: bad string: " <> show e
 
 erlps__request__2 :: Array ErlangTerm -> ErlangTerm
 erlps__request__2 [io_server@(ErlangPID _), ErlangTuple [ErlangAtom "io_request", from@(ErlangPID _), replyAs, request]] =

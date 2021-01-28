@@ -4,22 +4,21 @@
 module Erlang.Binary where
 
 import Prelude
-import Node.Buffer as Buffer
-import Node.Buffer(Buffer)
-import Effect (Effect)
-import Effect.Unsafe (unsafePerformEffect)
-import Partial.Unsafe (unsafePartial)
+import Prelude as Prelude
+
 import Data.Array as DA
+import Data.BigInt as DBI
+import Data.Foldable (class Foldable, elem, find, findMap)
+import Data.List as DL
 import Data.Maybe as DM
 import Data.Tuple as DT
-import Data.List as DL
-import Data.BigInt as DBI
-import Data.Maybe (fromJust)
-import Data.Foldable (class Foldable, elem, find, findMap)
-
+import Effect (Effect)
+import Effect.Unsafe (unsafePerformEffect)
+import Erlang.Exception as EXC
 import Erlang.Type (ErlangTerm(..), fromErl, toErl)
 import Erlang.Utils as Util
-import Erlang.Exception as EXC
+import Node.Buffer (Buffer)
+import Node.Buffer as Buffer
 
 data Endian = Big | Little
 data Sign   = Signed | Unsigned
@@ -137,7 +136,9 @@ chopFloat _ _ _ _ = EXC.badarg unit
 
 -- | Forcefully checks a value at given index. Throws error on miss
 unsafeAt :: Buffer -> Int -> Int
-unsafeAt buf n = unsafePartial $ fromJust $ unsafePerformEffect $ (Buffer.getAtOffset n buf)
+unsafeAt buf n = case unsafePerformEffect $ (Buffer.getAtOffset n buf) of
+  DM.Just i -> i
+  DM.Nothing -> Util.runtimeError $ "BIN.unsafeAt: bad idx " <> show n
 
 -- | Decodes unsigned integer in big-endian
 decodeUnsignedBig :: Buffer -> DBI.BigInt
@@ -179,7 +180,10 @@ fromIntBound n msize unit endian =
         if DM.maybe (num == DBI.fromInt 0) (\isize -> isize == DBI.fromInt 0) x
         then acc
         else build (map (_ - DBI.fromInt 1) x) (num / DBI.fromInt 256)
-             (DL.Cons (unsafePartial $ DM.fromJust $ Util.bigIntToInt $ num `mod` DBI.fromInt 256) acc)
+             (DL.Cons (case Util.bigIntToInt $ num `mod` DBI.fromInt 256 of
+                          DM.Just xn -> xn
+                          DM.Nothing -> EXC.badarg Prelude.unit
+                      ) acc)
       big = build bufSize n DL.Nil
   in fromFoldable $
     case endian of

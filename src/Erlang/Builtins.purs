@@ -407,7 +407,7 @@ erlang__map_get__2 args = maps__get__2 args
 
 -- =/=
 erlang__op_exactNeq :: ErlangFun
-erlang__op_exactNeq [a, b] = toErl (not $ strongNEq a b)
+erlang__op_exactNeq [a, b] = toErl (strongNEq a b)
 erlang__op_exactNeq [_, _] = EXC.badarg unit
 erlang__op_exactNeq args = EXC.badarity (ErlangFun 2 erlang__op_exactNeq) args
 
@@ -419,7 +419,7 @@ erlang__op_exactEq args = EXC.badarity (ErlangFun 2 erlang__op_exactEq) args
 
 -- /=
 erlang__op_neq :: ErlangFun
-erlang__op_neq [a, b] = toErl (not $ weakNEq a b)
+erlang__op_neq [a, b] = toErl (weakNEq a b)
 erlang__op_neq [_, _] = EXC.badarg unit
 erlang__op_neq args = EXC.badarity (ErlangFun 2 erlang__op_neq) args
 
@@ -530,6 +530,7 @@ erlang__op_unAppend [l, r] = do_unappend l r ErlangEmptyList
 erlang__op_unAppend [_, _] = EXC.badarg unit
 erlang__op_unAppend args = EXC.badarity (ErlangFun 2 erlang__op_unAppend) args
 
+do_unappend :: ErlangTerm -> ErlangTerm -> ErlangTerm -> ErlangTerm
 do_unappend ErlangEmptyList ErlangEmptyList ErlangEmptyList = ErlangEmptyList
 do_unappend r@(ErlangCons _ _) ErlangEmptyList ErlangEmptyList = r
 do_unappend ErlangEmptyList ErlangEmptyList acc = lists__reverse__2 [acc, ErlangEmptyList]
@@ -1201,6 +1202,7 @@ erlang__phash__2 [term, ErlangInt range] =
 erlang__phash__2 [_,_] = EXC.badarg unit
 erlang__phash__2 args = EXC.badarity (ErlangFun 2 erlang__phash__2) args
 
+finalize_hash :: DBI.BigInt -> DBI.BigInt -> DBI.BigInt
 finalize_hash range res = (DBI.fromInt 1) + (res `mod` range)
 
 unsignedToBigInt :: DU.UInt -> DBI.BigInt
@@ -1209,19 +1211,33 @@ unsignedToBigInt x =
         a | a >= 0 -> DBI.fromInt a
         a -> (DBI.shl (DBI.fromInt 1) 32.0) + (DBI.fromInt a)
 
+c_FUNNY_NUMBER1 :: DU.UInt
 c_FUNNY_NUMBER1  = DU.fromInt 268440163
+c_FUNNY_NUMBER2 :: DU.UInt
 c_FUNNY_NUMBER2  = DU.fromInt 268439161
+c_FUNNY_NUMBER3 :: DU.UInt
 c_FUNNY_NUMBER3  = DU.fromInt 268435459
+c_FUNNY_NUMBER4 :: DU.UInt
 c_FUNNY_NUMBER4  = DU.fromInt 268436141
+c_FUNNY_NUMBER5 :: DU.UInt
 c_FUNNY_NUMBER5  = DU.fromInt 268438633
+c_FUNNY_NUMBER6 :: DU.UInt
 c_FUNNY_NUMBER6  = DU.fromInt 268437017
+c_FUNNY_NUMBER7 :: DU.UInt
 c_FUNNY_NUMBER7  = DU.fromInt 268438039
+c_FUNNY_NUMBER8 :: DU.UInt
 c_FUNNY_NUMBER8  = DU.fromInt 268437511
+c_FUNNY_NUMBER9 :: DU.UInt
 c_FUNNY_NUMBER9  = DU.fromInt 268439627
+c_FUNNY_NUMBER10 :: DU.UInt
 c_FUNNY_NUMBER10 = DU.fromInt 268440479
+c_FUNNY_NUMBER11 :: DU.UInt
 c_FUNNY_NUMBER11 = DU.fromInt 268440577
+c_FUNNY_NUMBER12 :: DU.UInt
 c_FUNNY_NUMBER12 = DU.fromInt 268440581
+c_FUNNY_NUMBER13 :: DU.UInt
 c_FUNNY_NUMBER13 = DU.fromInt 268440593
+c_FUNNY_NUMBER14 :: DU.UInt
 c_FUNNY_NUMBER14 = DU.fromInt 268440611
 
 -- https://github.com/erlang/otp/blob/ec6e0a3d1ca4e38deee26aee15bb762ee1f86a0a/erts/emulator/beam/utils.c#L815
@@ -1285,6 +1301,7 @@ pad_arr a | DAN.length a < 4 = pad_arr (DAN.cons 0 a)
           | otherwise = a
 
 -- https://github.com/erlang/otp/blob/00a80c4d81c62c8820172b35c695f98489f4b118/erts/emulator/beam/atom.c#L129
+hash_atom :: String -> DU.UInt
 hash_atom s = hash_atom_int s (DU.fromInt 0)
 hash_atom_int :: String -> DU.UInt -> DU.UInt
 hash_atom_int s hash =

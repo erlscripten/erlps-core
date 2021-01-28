@@ -7,7 +7,6 @@ import Data.BigInt as DBI
 import Data.Either (Either(..))
 import Data.Lazy (defer, force)
 import Data.Maybe as DM
-import Data.String as DS
 import Data.String.CodePoints as DSCP
 import Data.Tuple as DT
 import Effect.Aff (Aff, Error, Milliseconds(..), attempt, delay, forkAff, launchAff_)
@@ -21,8 +20,7 @@ import Erlang.Invoke (run_erlang)
 import Erlang.Type (ErlangFun, ErlangTerm(..), fromErl)
 import Erlang.Utils (runtimeError)
 import Erlang.Utils as Util
-import Partial.Unsafe (unsafePartial)
-import Prelude (Unit, bind, discard, map, pure, show, unit, ($), (<>))
+import Prelude (Unit, bind, discard, pure, show, unit, ($), (<>))
 import Test.Spec.Assertions (fail, shouldEqual)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -44,8 +42,9 @@ wololoTerm :: Error -> ErlangTerm
 wololoTerm res = unsafeCoerce res
 
 -- | Converts ErlangTerm (presumably, integer) into codepoint
-wololoCodepoint :: Partial => ErlangTerm -> DSCP.CodePoint
-wololoCodepoint (ErlangInt res) = unsafeCoerce $ unsafePartial $ DM.fromJust $ Util.bigIntToInt res
+wololoCodepoint :: ErlangTerm -> DSCP.CodePoint
+wololoCodepoint (ErlangInt bres) | DM.Just res <- Util.bigIntToInt bres = unsafeCoerce res
+wololoCodepoint e = Util.runtimeError $ "wololo: bad codepoint: " <> show e
 
 
 printErr :: forall t31. Show t31 => Either Error t31 -> String
@@ -58,11 +57,9 @@ printErr (Left e) =
           let
             m1 = show a
             m2 = show b
-            m3 = unsafePartial $
-                 DS.fromCodePointArray $
-                 map wololoCodepoint $
-                 DM.fromJust $
-                 fromErl stack
+            m3 = case fromErl stack of
+                      DM.Just st -> st
+                      DM.Nothing -> show stack
           in "[" <> m1 <> ", " <> m2 <> ", " <> m3 <> "]"
         r -> show r
     r -> r
@@ -125,7 +122,12 @@ unpackOk t = do
   runtimeError "Unpack ok: not ok"
 
 
-testExecOk :: ErlangTerm -> (Array ErlangTerm -> ErlangTerm) -> Array ErlangTerm -> Aff Unit
+testExecOk :: ErlangTerm -> ErlangFun -> Array ErlangTerm -> Aff Unit
 testExecOk exp fun args = do
   r <- exec fun args
   exp `shouldEqualOk` r
+
+testExecErr :: ErlangFun -> Array ErlangTerm -> Aff Unit
+testExecErr fun args = do
+  r <- exec fun args
+  err `shouldEqual` r

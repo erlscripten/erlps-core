@@ -1,11 +1,10 @@
 module Test.Main where
 
-import Erlang.TestUtil (err, exec, shouldEqualOk, testExecOk, unpackOk)
+import Erlang.TestUtil (err, exec, shouldEqualOk, testExecOk, unpackOk, testExecErr)
 import Erlang.Type (ErlangTerm(..), bin, nil, toErl)
 import Erlang.Builtins as BIF
-import Erlang.Utils
+import Erlang.Utils(runtimeError)
 
-import Partial.Unsafe (unsafePartial)
 import Prelude
 import Effect.Aff (launchAff_)
 import Data.BigInt as DBI
@@ -86,11 +85,11 @@ main =
         it "-- 8" do
             testExecOk (nil) BIF.erlang__op_unAppend [toErl [2.0], toErl [2.0]]
         it "-- 9" do
-            testExecOk (err) BIF.erlang__op_unAppend [toErl [2], ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1)]
+            testExecErr BIF.erlang__op_unAppend [toErl [2], ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1)]
         it "-- 10" do
-            testExecOk (err) BIF.erlang__op_unAppend [nil, ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1)]
+            testExecErr BIF.erlang__op_unAppend [nil, ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1)]
         it "-- 11" do
-            testExecOk (err) BIF.erlang__op_unAppend [ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1), nil]
+            testExecErr BIF.erlang__op_unAppend [ErlangCons (ErlangFloat 0.1) (ErlangFloat 0.1), nil]
 
         it "comparators 1" do
             r1 <- exec BIF.erlang__op_lesser [ErlangAtom "asdf", toErl 0]
@@ -328,13 +327,13 @@ main =
         it "proper list 3" do
             testExecOk (bin [1,2,3,4,6,7,1,2,3,4,6,7]) BIF.erlang__list_to_binary__1 [toErl [toErl [1,2,3,4], toErl 6, toErl 7, bin [1,2,3,4,6,7]]]
         it "direct binary" do
-            testExecOk (err) BIF.erlang__list_to_binary__1 [bin [1,3,3,7]]
+            testExecErr BIF.erlang__list_to_binary__1 [bin [1,3,3,7]]
         it "improperList 1" do
             -- end of IOLIST can be a binary
             testExecOk (bin [1,2]) BIF.erlang__list_to_binary__1 [ErlangCons (toErl 1) (bin [2])]
         it "improperList 2" do
             -- end of IOLIST is either a binary or a empty list
-            testExecOk (err) BIF.erlang__list_to_binary__1 [ErlangCons (toErl 1) (toErl 2)]
+            testExecErr BIF.erlang__list_to_binary__1 [ErlangCons (toErl 1) (toErl 2)]
         it "iolists contain bytes not ints ;)" do
             r1 <- exec BIF.erlang__list_to_binary__1 [toErl [255]]
             bin [255] `shouldEqualOk` r1
@@ -355,7 +354,7 @@ main =
             testExecOk (bin [1,2]) BIF.erlang__iolist_to_binary__1 [ErlangCons (toErl 1) (bin [2])]
         it "improperList 2" do
             -- end of IOLIST is either a binary or a empty list
-            testExecOk (err) BIF.erlang__iolist_to_binary__1 [ErlangCons (toErl 1) (toErl 2)]
+            testExecErr BIF.erlang__iolist_to_binary__1 [ErlangCons (toErl 1) (toErl 2)]
         it "iolists contain bytes not ints ;)" do
             r1 <- exec BIF.erlang__iolist_to_binary__1 [toErl [255]]
             bin [255] `shouldEqualOk` r1

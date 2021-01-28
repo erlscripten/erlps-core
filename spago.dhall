@@ -11,10 +11,11 @@ You can edit this file as you like.
   , "integers"
   , "lists"
   , "node-buffer"
+  , "numbers"
   , "psci-support"
   , "rationals"
   , "spec"
-  , "numbers"
+  , "tailrec"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

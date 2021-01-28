@@ -1,12 +1,24 @@
-module Erlang.Type where
+module Erlang.Type
+       ( ErlangFun
+       , ErlangTerm(..)
+       , strongEq, strongNEq, strongCmp, strongGeq, strongGt, strongLeq, strongLt
+       , weakEq, weakNEq, weakCmp, weakGeq, weakGt, weakLeq, weakLt
+       , WeakErlangTerm
+       , unpackWeak
+       , class ToErlang, class FromErlang
+       , toErl, fromErl
+       , nil, cons, tup, bin
+       , isEList, isEInt, isENum, isEFloat, isEAtom, isEPID
+       , isEBinary, isETuple, isEFun, isEFunA, isEMap, isEReference
+       ) where
 
 import Prelude
-import Unsafe.Coerce
 
 import Data.Array as DA
 import Data.BigInt as DBI
 import Data.Char as DC
-import Data.Int as DI
+import Data.Foldable (class Foldable)
+import Data.Int as Int
 import Data.List as DL
 import Data.Map as Map
 import Data.Maybe as DM
@@ -14,13 +26,17 @@ import Data.String as DS
 import Data.String.CodePoints as DSCP
 import Data.Traversable (traverse)
 import Data.Tuple as DT
-import Effect (Effect)
-import Effect.Exception (throw)
+import Data.Unfoldable (class Unfoldable)
 import Effect.Unsafe (unsafePerformEffect)
-import Node.Buffer (Buffer, concat, toArray)
+import Erlang.Utils (bigIntToInt, codePointToInt)
+import Node.Buffer (Buffer, toArray, fromArray)
+import Unsafe.Coerce (unsafeCoerce)
 
+-- | Type of an Erlang function. Needs to be uncurried in order
+-- to support arbitrary arities and catch `badarity` errors properly
 type ErlangFun = Array ErlangTerm -> ErlangTerm
 
+-- | Data representing an Erlang Term
 data ErlangTerm
     = ErlangInt       DBI.BigInt
     | ErlangFloat     Number
@@ -34,6 +50,10 @@ data ErlangTerm
     | ErlangReference Int
     | ErlangPID       Int
 
+---- INSTANCES ----
+
+-- | Converts an array to string with custom opener, delimiter, closer
+-- and element display
 foreign import showArrayImplGeneral
   :: forall a. String -> String -> String -> (a -> String) -> Array a -> String
 
@@ -41,22 +61,19 @@ instance showErlangTerm :: Show ErlangTerm where
     show ErlangEmptyList =
         "[]"
     show term
-      | DM.Just l <- erlangListToList term >>=
+      | DM.Just (l :: Array DSCP.CodePoint) <- fromErl term >>=
           traverse (\t -> case t of
-                      ErlangInt bi -> DI.fromNumber (DBI.toNumber bi) >>=
+                      ErlangInt bi -> Int.fromNumber (DBI.toNumber bi) >>=
                          \i -> if (i >= 32 && i <= 126) || (i >= 8 && i <= 12)
                                then map DSCP.codePointFromChar $ DC.fromCharCode i else DM.Nothing
                       _ -> DM.Nothing
                    )
             = show $ DS.fromCodePointArray $ DA.fromFoldable l
-    show term
-      | DM.Just l <- erlangListToList term
-      = show (DA.fromFoldable l)
     show (ErlangInt a) =
         DBI.toString a
     show (ErlangFloat a) =
         show a
-    show term  | DM.Just l <- erlangListToList term =
+    show term  | DM.Just (l :: Array ErlangTerm) <- fromErl term =
         show l
     show (ErlangCons h t) =
         "[" <> show h <> "|" <> show t <> "]"
@@ -85,16 +102,19 @@ instance showErlangTerm :: Show ErlangTerm where
     show (ErlangPID a) =
         show a
 
+-- | Compares terms for equality unifying floats and ints of the same value
 weakNumEq :: ErlangTerm -> ErlangTerm -> Boolean
 weakNumEq (ErlangInt a) (ErlangFloat b) = (DBI.toNumber a) == b
 weakNumEq (ErlangFloat a) (ErlangInt b) = a == (DBI.toNumber b)
 weakNumEq x y = eqErlangTerm weakNumEq x y
 
+-- | Compares terms for equality treating floats and ints of the same value as different
 strongNumEq :: ErlangTerm -> ErlangTerm -> Boolean
 strongNumEq (ErlangInt _) (ErlangFloat _) = false
 strongNumEq (ErlangFloat _) (ErlangInt _) = false
 strongNumEq x y = eqErlangTerm strongNumEq x y
 
+-- | General array comparator
 eqArraysWith
   :: (ErlangTerm -> ErlangTerm -> Boolean)
   -> Array ErlangTerm -> Array ErlangTerm -> Boolean
@@ -105,6 +125,7 @@ eqArraysWith e a1 a2 =
         _ -> true
   in if DA.length a1 == DA.length a2 then go 0 else false
 
+-- | Generic term comparator parametrized with number comparator
 eqErlangTerm :: (ErlangTerm -> ErlangTerm -> Boolean)
              ->  ErlangTerm -> ErlangTerm -> Boolean
 eqErlangTerm _ (ErlangAtom a) (ErlangAtom b) = a == b
@@ -136,15 +157,13 @@ eqErlangTermTCOBreak
 eqErlangTermTCOBreak numEq = eqErlangTerm numEq
 
 
-instance eqErlangTermInst :: Eq ErlangTerm where
-    eq = eqErlangTerm strongNumEq
-
-
+-- | Compares terms unifying floats and ints of the same value
 weakNumCmp :: ErlangTerm -> ErlangTerm -> Ordering
 weakNumCmp (ErlangInt a) (ErlangFloat b) = compare (DBI.toNumber a) b
 weakNumCmp (ErlangFloat a) (ErlangInt b) = compare a (DBI.toNumber b)
 weakNumCmp x y = compareErlangTerm weakNumCmp x y
 
+-- | Compares terms treating floats and ints of the same value as different
 strongNumCmp :: ErlangTerm -> ErlangTerm -> Ordering
 strongNumCmp (ErlangInt _) (ErlangFloat _) = LT
 strongNumCmp (ErlangFloat _) (ErlangInt _) = GT
@@ -211,45 +230,77 @@ compareErlangTerm _   (ErlangPID _)       _ = GT
 compareErlangTerm _ _ (ErlangPID _)         = LT
 compareErlangTerm _   (ErlangReference _) _ = GT
 compareErlangTerm _ _ (ErlangReference _)   = LT
-compareErlangTerm _   (ErlangFloat _)     _ = GT
-compareErlangTerm _ _ (ErlangFloat _)       = LT
-compareErlangTerm _   (ErlangInt _)       _ = GT
-compareErlangTerm _ _ (ErlangInt _)         = LT
-
 
 compareErlangTermTCOBreak
   :: (ErlangTerm -> ErlangTerm -> Ordering)
   ->  ErlangTerm -> ErlangTerm -> Ordering
 compareErlangTermTCOBreak numCmp = compareErlangTerm numCmp
 
-instance ordErlangTermInst :: Ord ErlangTerm where
-    compare = compareErlangTerm strongNumCmp
-
+-- | Weak equality comparator
 weakEq :: ErlangTerm -> ErlangTerm -> Boolean
 weakEq = eqErlangTerm weakNumEq
 
+-- | Weak nonequality comparator
 weakNEq :: ErlangTerm -> ErlangTerm -> Boolean
 weakNEq = not (eqErlangTerm weakNumEq)
 
+-- | Weak comparator
 weakCmp :: ErlangTerm -> ErlangTerm -> Ordering
 weakCmp = compareErlangTerm weakNumCmp
 
+-- | Weak greater-than comparator
 weakGt :: ErlangTerm -> ErlangTerm -> Boolean
 weakGt a b = compareErlangTerm weakNumCmp a b == GT
+
+-- | Weak lesser-than comparator
 weakLt :: ErlangTerm -> ErlangTerm -> Boolean
 weakLt a b = compareErlangTerm weakNumCmp a b == LT
+
+-- | Weak greater-equal comparator
 weakGeq :: ErlangTerm -> ErlangTerm -> Boolean
 weakGeq a b = compareErlangTerm weakNumCmp a b /= LT
+
+-- | Weak lesser-equal comparator
 weakLeq :: ErlangTerm -> ErlangTerm -> Boolean
 weakLeq a b = compareErlangTerm weakNumCmp a b /= GT
 
-concatArrays :: Buffer -> Buffer -> Effect (Buffer)
-concatArrays a b = concat [a, b]
 
-instance semigroupErlangTerm :: Semigroup ErlangTerm where
-     append (ErlangBinary a) (ErlangBinary b) = ErlangBinary $ unsafePerformEffect (concatArrays a b)
-     append _ _ = unsafePerformEffect $ throw "Invalid append"
+-- | Strong equality comparator
+strongEq :: ErlangTerm -> ErlangTerm -> Boolean
+strongEq = eqErlangTerm strongNumEq
 
+-- | Strong nonequality comparator
+strongNEq :: ErlangTerm -> ErlangTerm -> Boolean
+strongNEq = not (eqErlangTerm strongNumEq)
+
+-- | Strong comparator
+strongCmp :: ErlangTerm -> ErlangTerm -> Ordering
+strongCmp = compareErlangTerm strongNumCmp
+
+-- | Strong greater-than comparator
+strongGt :: ErlangTerm -> ErlangTerm -> Boolean
+strongGt a b = compareErlangTerm strongNumCmp a b == GT
+
+-- | Strong lesser-than comparator
+strongLt :: ErlangTerm -> ErlangTerm -> Boolean
+strongLt a b = compareErlangTerm strongNumCmp a b == LT
+
+-- | Strong greater-equal comparator
+strongGeq :: ErlangTerm -> ErlangTerm -> Boolean
+strongGeq a b = compareErlangTerm strongNumCmp a b /= LT
+
+-- | Strong lesser-equal comparator
+strongLeq :: ErlangTerm -> ErlangTerm -> Boolean
+strongLeq a b = compareErlangTerm strongNumCmp a b /= GT
+
+instance eqErlangTermInst :: Eq ErlangTerm where
+    eq = strongEq
+
+instance ordErlangTermInst :: Ord ErlangTerm where
+    compare = strongCmp
+
+
+-- | Version of `ErlangTerm` that uses strong comparator as default
 newtype WeakErlangTerm = WeakErlangTerm ErlangTerm
 unpackWeak :: WeakErlangTerm -> ErlangTerm
 unpackWeak (WeakErlangTerm t) = t
@@ -259,17 +310,163 @@ instance eqWeakErlangTerm :: Eq WeakErlangTerm where
 instance ordWeakErlangTerm :: Ord WeakErlangTerm where
   compare e1 e2 = weakCmp (unpackWeak e1) (unpackWeak e2)
 
-erlangListToList :: ErlangTerm -> DM.Maybe (DL.List ErlangTerm)
-erlangListToList = go DL.Nil where
-  go acc ErlangEmptyList = DM.Just (DL.reverse acc)
-  go acc (ErlangCons h t) = go (DL.Cons h acc) t
-  go _ _ = DM.Nothing
 
-arrayToErlangList :: Array ErlangTerm -> ErlangTerm
-arrayToErlangList arr = go (DL.fromFoldable arr) where
-  go DL.Nil = ErlangEmptyList
-  go (DL.Cons h t) = ErlangCons h (go t)
+---- ToErlang class ----
 
-boolToTerm :: Boolean -> ErlangTerm
-boolToTerm true = ErlangAtom "true"
-boolToTerm false = ErlangAtom "false"
+-- | Conversion to Erlang term
+class ToErlang e where
+  toErl :: e -> ErlangTerm
+
+instance erlangTermToErlang :: ToErlang ErlangTerm where
+  toErl x = x
+
+instance weakErlangTermToErlang :: ToErlang WeakErlangTerm where
+  toErl = unpackWeak
+
+instance foldableToErlang :: (Foldable f, ToErlang e) => ToErlang (f e) where
+  toErl f = go (DL.fromFoldable f) where
+    go DL.Nil = ErlangEmptyList
+    go (DL.Cons h t) = ErlangCons (toErl h) (go t)
+
+instance boolToErlang :: ToErlang Boolean where
+  toErl b = ErlangAtom (if b then "true" else "false")
+
+instance intToErlang :: ToErlang Int where
+  toErl i = ErlangInt (DBI.fromInt i)
+
+instance bigIntToErlang :: ToErlang DBI.BigInt where
+  toErl = ErlangInt
+
+instance stringToErlang :: ToErlang String where
+  toErl str =
+    toErl $ map (ErlangInt <<< DBI.fromInt <<< codePointToInt) (DS.toCodePointArray str)
+
+instance bufferToErlang :: ToErlang Buffer where
+  toErl = ErlangBinary
+
+instance numberToErlang :: ToErlang Number where
+  toErl = ErlangFloat
+
+---- FromErlang class ----
+
+-- | Conversion from Erlang term
+class FromErlang e where
+  fromErl :: ErlangTerm -> DM.Maybe e
+
+instance erlangFromErlang :: FromErlang ErlangTerm where
+  fromErl x = DM.Just x
+
+instance weakErlangFromErlang :: FromErlang WeakErlangTerm where
+  fromErl x = DM.Just (WeakErlangTerm x)
+
+instance intFromErlang :: FromErlang Int where
+  fromErl (ErlangInt bi) = bigIntToInt bi
+  fromErl _ = DM.Nothing
+
+instance bigIntFromErlang :: FromErlang DBI.BigInt where
+  fromErl (ErlangInt bi) = DM.Just bi
+  fromErl _ = DM.Nothing
+
+instance numberFromErlang :: FromErlang Number where
+  fromErl (ErlangFloat f) = DM.Just f
+  fromErl _ = DM.Nothing
+
+instance unfoldableFromErlang :: (FromErlang e, Unfoldable f) => FromErlang (f e) where
+  fromErl = go DL.Nil where
+    go acc ErlangEmptyList = DM.Just (DL.toUnfoldable (DL.reverse acc))
+    go acc (ErlangCons eh t) | DM.Just h <- fromErl eh = go (DL.Cons h acc) t
+    go _ _ = DM.Nothing
+
+instance stringFromErlang :: FromErlang String where
+  fromErl t =
+    fromErl t >>=
+    traverse (\x -> case x of
+               ErlangInt di ->
+                 map (DSCP.codePointFromChar) (bigIntToInt di >>= DC.fromCharCode)
+               _ -> DM.Nothing
+           )
+       <#> (DSCP.fromCodePointArray)
+
+---- Constructors ----
+
+-- | Alias for ErlangEmptyList
+nil :: ErlangTerm
+nil = ErlangEmptyList
+
+-- | Alias for ErlangCons
+cons :: forall h t. ToErlang h => ToErlang t => h -> t -> ErlangTerm
+cons h t = ErlangCons (toErl h) (toErl t)
+
+-- | Infix version of `cons`
+infixr 6 cons as :::
+
+-- | Generic tuple constructor
+tup :: forall e f. ToErlang e => Foldable f => f e -> ErlangTerm
+tup f = ErlangTuple (map toErl $ DA.fromFoldable $ f)
+
+bin :: forall f. Foldable f => f Int -> ErlangTerm
+bin e = ErlangBinary (unsafePerformEffect (fromArray (DA.fromFoldable e)))
+
+---- Type tests ----
+
+-- | `is_list/1` equivalent
+isEList :: ErlangTerm -> Boolean
+isEList ErlangEmptyList = true
+isEList (ErlangCons _ _) = true
+isEList _ = false
+
+-- | `is_list/1` equivalent
+isEInt :: ErlangTerm -> Boolean
+isEInt (ErlangInt _) = true
+isEInt _ = false
+
+-- | `is_list/1` equivalent
+isEFloat :: ErlangTerm -> Boolean
+isEFloat (ErlangFloat _) = true
+isEFloat _ = false
+
+-- | `is_list/1` equivalent
+isENum :: ErlangTerm -> Boolean
+isENum (ErlangInt _) = true
+isENum (ErlangFloat _) = true
+isENum _ = false
+
+-- | `is_atom/1` equivalent
+isEAtom :: ErlangTerm -> Boolean
+isEAtom (ErlangAtom _) = true
+isEAtom _ = false
+
+-- | `is_binary/1` equivalent
+isEBinary :: ErlangTerm -> Boolean
+isEBinary (ErlangBinary _) = true
+isEBinary _ = false
+
+-- | `is_tuple/1` equivalent
+isETuple :: ErlangTerm -> Boolean
+isETuple (ErlangTuple _) = true
+isETuple _ = false
+
+-- | `is_function/1` equivalent
+isEFun :: ErlangTerm -> Boolean
+isEFun (ErlangFun _ _) = true
+isEFun _ = false
+
+-- | `is_function/2` equivalent
+isEFunA :: ErlangTerm -> ErlangTerm -> Boolean
+isEFunA (ErlangFun a0 _) (ErlangInt a1) = DBI.fromInt a0 == a1
+isEFunA _ _ = false
+
+-- | `is_map/1` equivalent
+isEMap :: ErlangTerm -> Boolean
+isEMap (ErlangMap _) = true
+isEMap _ = false
+
+-- | `is_pid/1` equivalent
+isEPID :: ErlangTerm -> Boolean
+isEPID (ErlangPID _) = true
+isEPID _ = false
+
+-- | `is_reference/1` equivalent
+isEReference :: ErlangTerm -> Boolean
+isEReference (ErlangReference _) = true
+isEReference _ = false

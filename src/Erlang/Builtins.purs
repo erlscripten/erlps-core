@@ -1,13 +1,9 @@
+-- | Collection of manually transpiled builtin functionas and NIFs.
+-- Should be imported with `BIF` alias.
 module Erlang.Builtins where
 
-import Control.Monad
-import Data.Traversable
-import Effect
-import Effect.Now
-import Effect.Unsafe
 import Erlang.Type
 import Math
-import Partial.Unsafe
 import Prelude
 
 import Data.Array as DA
@@ -15,29 +11,25 @@ import Data.Array.NonEmpty as DAN
 import Data.BigInt as DBI
 import Data.Char as Char
 import Data.DateTime.Instant as TINS
-import Data.EuclideanRing (mod)
-import Data.Int as DI
-import Data.Int.Bits as DIB
 import Data.List as DL
 import Data.Map as Map
 import Data.Maybe as DM
-import Data.Number.Approximate as DNA
-import Data.String as DSTR
+import Data.String as DS
 import Data.String.CodePoints as CodePoints
 import Data.Time.Duration as TDUR
+import Data.Traversable (foldl, traverse)
 import Data.Tuple as DT
 import Data.UInt as DU
-import Data.Unit (unit)
-import Effect.Exception (throw)
+import Effect.Now (now)
+import Effect.Unsafe (unsafePerformEffect)
 import Erlang.Binary as BIN
 import Erlang.Exception as EXC
-import Erlang.Helpers (isEBinary, isEList)
-import Erlang.Helpers as H
-import Node.Buffer (Buffer)
+import Erlang.Utils as Util
 import Node.Buffer as Buffer
 
+
 unimplemented :: String -> ErlangTerm
-unimplemented name = unsafePerformEffect (throw $ "unimplemented BIF: " <> name)
+unimplemented name = Util.runtimeError ("unimplemented BIF: " <> name)
 
 purs_tco_sucks :: ErlangFun
 purs_tco_sucks _ = ErlangAtom "purs_tco_sucks"
@@ -120,16 +112,16 @@ erlang__apply__3 args = EXC.badarity (ErlangFun 3 erlang__apply__3) args
 
 erlang__make_fun__3 :: ErlangFun
 erlang__make_fun__3 [m@(ErlangAtom _), f@(ErlangAtom _), ErlangInt barity]
-  | DM.Just arity <- H.bigIntToInt barity =
+  | DM.Just arity <- Util.bigIntToInt barity =
     ErlangFun arity
-        (\ args -> erlang__apply__3 [m, f, arrayToErlangList args] )
+        (\ args -> erlang__apply__3 [m, f, toErl args] )
 erlang__make_fun__3 [_,_,_] = EXC.badarg unit
 erlang__make_fun__3 args = EXC.badarity (ErlangFun 3 erlang__make_fun__3) args
 
 foreign import do_function_exported_3 :: String -> String -> Int -> Boolean
 erlang__function_exported__3 :: ErlangFun
-erlang__function_exported__3 [ErlangAtom m, ErlangAtom f, ErlangInt ar] | DM.Just arity <- H.bigIntToInt ar =
-    boolToTerm $ do_function_exported_3 m f arity
+erlang__function_exported__3 [ErlangAtom m, ErlangAtom f, ErlangInt ar] | DM.Just arity <- Util.bigIntToInt ar =
+    toErl $ do_function_exported_3 m f arity
 erlang__function_exported__3 [_,_,_] = EXC.badarg unit
 erlang__function_exported__3 args = EXC.badarity (ErlangFun 3 erlang__function_exported__3) args
 
@@ -205,7 +197,7 @@ erlang__float__1 [_] = EXC.badarg unit
 erlang__float__1 args = EXC.badarity (ErlangFun 1 erlang__float__1) args
 
 erlang__float__guard__1 :: ErlangFun
-erlang__float__guard__1 [arg] = boolToTerm (H.isEFloat arg)
+erlang__float__guard__1 [arg] = toErl (isEFloat arg)
 erlang__float__guard__1 [_] = EXC.badarg unit
 erlang__float__guard__1 args = EXC.badarity (ErlangFun 1 erlang__float__1) args
 
@@ -214,7 +206,7 @@ erlang__float__guard__1 args = EXC.badarity (ErlangFun 1 erlang__float__1) args
 
 lists__keysearch__3 :: ErlangFun
 lists__keysearch__3 [key, idx@(ErlangInt bidxNum), l]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 =
+  | DM.Just idxNum <- Util.bigIntToInt bidxNum, idxNum > 0 =
     let go ErlangEmptyList = ErlangAtom "false"
         go (ErlangCons el rest) = case el of
           ErlangTuple tup ->
@@ -232,7 +224,7 @@ lists__keysearch__3 args = EXC.badarity (ErlangFun 3 lists__keysearch__3) args
 
 lists__keymember__3 :: ErlangFun
 lists__keymember__3 [key, idx@(ErlangInt bidxNum), l]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0  =
+  | DM.Just idxNum <- Util.bigIntToInt bidxNum, idxNum > 0  =
     let go ErlangEmptyList = ErlangAtom "false"
         go (ErlangCons el rest) = case el of
           ErlangTuple tup ->
@@ -267,7 +259,7 @@ lists__member__2 args = EXC.badarity (ErlangFun 2 lists__member__2) args
 
 lists__keyfind__3 :: ErlangFun
 lists__keyfind__3 [key, idx@(ErlangInt bidxNum), l]
-  | DM.Just idxNum <- H.bigIntToInt bidxNum, idxNum > 0 =
+  | DM.Just idxNum <- Util.bigIntToInt bidxNum, idxNum > 0 =
     let go ErlangEmptyList = ErlangAtom "false"
         go (ErlangCons el rest) = case el of
           ErlangTuple tup ->
@@ -327,22 +319,22 @@ maps__find__2 [_,m] = EXC.badmap m
 maps__find__2 args = EXC.badarity (ErlangFun 2 maps__find__2) args
 
 maps__from_list__1 :: ErlangFun
-maps__from_list__1 [t] | DM.Just l <- erlangListToList t =
+maps__from_list__1 [t] | DM.Just l <- fromErl t =
     ErlangMap (Map.fromFoldable (map (\x ->
         case x of
             ErlangTuple [k,v] -> DT.Tuple k v
             _ -> EXC.badarg unit
-        ) l))
+        ) (l :: Array ErlangTerm)))
 maps__from_list__1 [_] = EXC.badarg unit
 maps__from_list__1 args = EXC.badarity (ErlangFun 1 maps__from_list__1) args
 
 maps__is_key__2 :: ErlangFun
-maps__is_key__2 [k, ErlangMap m] = boolToTerm $ Map.member k m
+maps__is_key__2 [k, ErlangMap m] = toErl $ Map.member k m
 maps__is_key__2 [_,m] = EXC.badmap m
 maps__is_key__2 args = EXC.badarity (ErlangFun 2 maps__is_key__2) args
 
 maps__keys__1 :: ErlangFun
-maps__keys__1 [ErlangMap m] = arrayToErlangList $ DA.fromFoldable $ Map.keys m
+maps__keys__1 [ErlangMap m] = toErl $ DA.fromFoldable $ Map.keys m
 maps__keys__1 [m] = EXC.badmap m
 maps__keys__1 args = EXC.badarity (ErlangFun 1 maps__keys__1) args
 
@@ -371,7 +363,9 @@ maps__take__2 [_,m] = EXC.badmap m
 maps__take__2 args = EXC.badarity (ErlangFun 2 maps__take__2) args
 
 maps__to_list__1 :: ErlangFun
-maps__to_list__1 [ErlangMap m] = arrayToErlangList $ map (\(DT.Tuple k v) -> ErlangTuple [k, v]) $ Map.toUnfoldable m
+maps__to_list__1 [ErlangMap m] =
+  toErl $ map (\(DT.Tuple k v) -> ErlangTuple [k, v]) $
+  (Map.toUnfoldable m :: Array (DT.Tuple ErlangTerm ErlangTerm))
 maps__to_list__1 [m] = EXC.badmap m
 maps__to_list__1 args = EXC.badarity (ErlangFun 1 maps__to_list__1) args
 
@@ -384,13 +378,13 @@ maps__update__3 [_,_,m] = EXC.badmap m
 maps__update__3 args = EXC.badarity (ErlangFun 3 maps__update__3) args
 
 maps__values__1 :: ErlangFun
-maps__values__1 [ErlangMap m] = arrayToErlangList $ DA.fromFoldable $ Map.values m
+maps__values__1 [ErlangMap m] = toErl $ DA.fromFoldable $ Map.values m
 maps__values__1 [m] = EXC.badmap m
 maps__values__1 args = EXC.badarity (ErlangFun 1 maps__values__1) args
 
 erts_internal__map_next__3 :: ErlangFun
 erts_internal__map_next__3 [ErlangInt bi, ErlangMap m, ErlangAtom "iterator"]
-  | DM.Just 0 <- H.bigIntToInt bi =
+  | DM.Just 0 <- Util.bigIntToInt bi =
     case Map.findMin m of
         DM.Nothing -> ErlangAtom "none"
         DM.Just ({key: k, value: v}) -> ErlangTuple [k, v, ErlangCons (ErlangInt (DBI.fromInt 0)) (ErlangMap $ Map.delete k m)]
@@ -413,43 +407,43 @@ erlang__map_get__2 args = maps__get__2 args
 
 -- =/=
 erlang__op_exactNeq :: ErlangFun
-erlang__op_exactNeq [a, b] = boolToTerm (not $ eqErlangTerm strongNumEq a b)
+erlang__op_exactNeq [a, b] = toErl (not $ strongNEq a b)
 erlang__op_exactNeq [_, _] = EXC.badarg unit
 erlang__op_exactNeq args = EXC.badarity (ErlangFun 2 erlang__op_exactNeq) args
 
 -- =:=
 erlang__op_exactEq :: ErlangFun
-erlang__op_exactEq [a, b] = boolToTerm (eqErlangTerm strongNumEq a b)
+erlang__op_exactEq [a, b] = toErl (strongEq a b)
 erlang__op_exactEq [_, _] = EXC.badarg unit
 erlang__op_exactEq args = EXC.badarity (ErlangFun 2 erlang__op_exactEq) args
 
 -- /=
 erlang__op_neq :: ErlangFun
-erlang__op_neq [a, b] = boolToTerm (not $ eqErlangTerm weakNumEq a b)
+erlang__op_neq [a, b] = toErl (not $ weakNEq a b)
 erlang__op_neq [_, _] = EXC.badarg unit
 erlang__op_neq args = EXC.badarity (ErlangFun 2 erlang__op_neq) args
 
 -- ==
 erlang__op_eq :: ErlangFun
-erlang__op_eq [a, b] = boolToTerm (eqErlangTerm weakNumEq a b)
+erlang__op_eq [a, b] = toErl (weakEq a b)
 erlang__op_eq [_, _] = EXC.badarg unit
 erlang__op_eq args = EXC.badarity (ErlangFun 2 erlang__op_eq) args
 
 -- and
 erlang__op_and :: ErlangFun
-erlang__op_and [ErlangAtom "true",  ErlangAtom "true"]  = boolToTerm true
-erlang__op_and [ErlangAtom "false", ErlangAtom "true"]  = boolToTerm false
-erlang__op_and [ErlangAtom "true",  ErlangAtom "false"] = boolToTerm false
-erlang__op_and [ErlangAtom "false", ErlangAtom "false"] = boolToTerm false
+erlang__op_and [ErlangAtom "true",  ErlangAtom "true"]  = toErl true
+erlang__op_and [ErlangAtom "false", ErlangAtom "true"]  = toErl false
+erlang__op_and [ErlangAtom "true",  ErlangAtom "false"] = toErl false
+erlang__op_and [ErlangAtom "false", ErlangAtom "false"] = toErl false
 erlang__op_and [_, _] = EXC.badarg unit
 erlang__op_and args = EXC.badarity (ErlangFun 2 erlang__op_and) args
 
 -- or
 erlang__op_or :: ErlangFun
-erlang__op_or [ErlangAtom "true",  ErlangAtom "true"]  = boolToTerm true
-erlang__op_or [ErlangAtom "false", ErlangAtom "true"]  = boolToTerm true
-erlang__op_or [ErlangAtom "true",  ErlangAtom "false"] = boolToTerm true
-erlang__op_or [ErlangAtom "false", ErlangAtom "false"] = boolToTerm false
+erlang__op_or [ErlangAtom "true",  ErlangAtom "true"]  = toErl true
+erlang__op_or [ErlangAtom "false", ErlangAtom "true"]  = toErl true
+erlang__op_or [ErlangAtom "true",  ErlangAtom "false"] = toErl true
+erlang__op_or [ErlangAtom "false", ErlangAtom "false"] = toErl false
 erlang__op_or [_, _] = EXC.badarg unit
 erlang__op_or args = EXC.badarity (ErlangFun 2 erlang__op_or) args
 
@@ -503,33 +497,25 @@ erlang__op_plus args = EXC.badarity (ErlangFun 2 erlang__op_plus) args
 
 -- >=
 erlang__op_greaterEq :: ErlangFun
-erlang__op_greaterEq [a, b] = case compareErlangTerm weakNumCmp a b of
-  LT -> ErlangAtom "false"
-  _  -> ErlangAtom "true"
+erlang__op_greaterEq [a, b] = toErl (weakGeq a b)
 erlang__op_greaterEq [_, _] = EXC.badarg unit
 erlang__op_greaterEq args = EXC.badarity (ErlangFun 2 erlang__op_greaterEq) args
 
 -- >
 erlang__op_greater :: ErlangFun
-erlang__op_greater [a, b] = case compareErlangTerm weakNumCmp a b of
-  GT -> ErlangAtom "true"
-  _  -> ErlangAtom "false"
+erlang__op_greater [a, b] = toErl (weakGt a b)
 erlang__op_greater [_, _] = EXC.badarg unit
 erlang__op_greater args = EXC.badarity (ErlangFun 2 erlang__op_greater) args
 
 -- =<
 erlang__op_lesserEq :: ErlangFun
-erlang__op_lesserEq [a, b] = case compareErlangTerm weakNumCmp a b of
-  GT -> ErlangAtom "false"
-  _  -> ErlangAtom "true"
+erlang__op_lesserEq [a, b] = toErl (weakLeq a b)
 erlang__op_lesserEq [_, _] = EXC.badarg unit
 erlang__op_lesserEq args = EXC.badarity (ErlangFun 2 erlang__op_lesserEq) args
 
 -- <
 erlang__op_lesser :: ErlangFun
-erlang__op_lesser [a, b] = case compareErlangTerm weakNumCmp a b of
-  LT -> ErlangAtom "true"
-  _  -> ErlangAtom "false"
+erlang__op_lesser [a, b] = toErl (weakLt a b)
 erlang__op_lesser [_, _] = EXC.badarg unit
 erlang__op_lesser args = EXC.badarity (ErlangFun 2 erlang__op_lesser) args
 
@@ -673,13 +659,13 @@ erlang__is_port__1 args = EXC.badarity (ErlangFun 1 erlang__is_port__1) args
 erlang__is_boolean__1 :: ErlangFun
 erlang__is_boolean__1 [ErlangAtom "true"] = ErlangAtom "true"
 erlang__is_boolean__1 [ErlangAtom "false"] = ErlangAtom "true"
-erlang__is_boolean__1 [_] = boolToTerm false
+erlang__is_boolean__1 [_] = toErl false
 erlang__is_boolean__1 [_] = EXC.badarg unit
 erlang__is_boolean__1 args = EXC.badarity (ErlangFun 1 erlang__is_boolean__1) args
 
 erlang__is_record__2 :: ErlangFun
 erlang__is_record__2 [term, ErlangAtom tag] = case term of
-  ErlangTuple arr | DM.Just (ErlangAtom termTag) <- DA.head arr -> boolToTerm $ tag == termTag
+  ErlangTuple arr | DM.Just (ErlangAtom termTag) <- DA.head arr -> toErl $ tag == termTag
   _ -> ErlangAtom "false"
 erlang__is_record__2 [_,_] = EXC.badarg unit
 erlang__is_record__2 args = EXC.badarity (ErlangFun 2 erlang__is_record__2) args
@@ -701,8 +687,8 @@ erlang__is_number__1 [_] = ErlangAtom "false"
 erlang__is_number__1 args = EXC.badarity (ErlangFun 1 erlang__is_number__1) args
 
 erlang__is_pid__1 :: ErlangFun
-erlang__is_pid__1 [ErlangPID _] = boolToTerm true
-erlang__is_pid__1 [_] = boolToTerm false
+erlang__is_pid__1 [ErlangPID _] = toErl true
+erlang__is_pid__1 [_] = toErl false
 erlang__is_pid__1 args = EXC.badarity (ErlangFun 1 erlang__is_pid__1) args
 
 erlang__is_function__1 :: ErlangFun
@@ -716,14 +702,14 @@ erlang__is_reference__1 [_] = ErlangAtom "false"
 erlang__is_reference__1 args = EXC.badarity (ErlangFun 1 erlang__is_reference__1) args
 
 erlang__is_list__1 :: ErlangFun
-erlang__is_list__1 [ErlangEmptyList] = boolToTerm true
-erlang__is_list__1 [ErlangCons _ _] = boolToTerm true
-erlang__is_list__1 [_] = boolToTerm false
+erlang__is_list__1 [ErlangEmptyList] = toErl true
+erlang__is_list__1 [ErlangCons _ _] = toErl true
+erlang__is_list__1 [_] = toErl false
 erlang__is_list__1 args = EXC.badarity (ErlangFun 1 erlang__is_list__1) args
 
 erlang__is_map__1 :: ErlangFun
-erlang__is_map__1 [ErlangMap _] = boolToTerm true
-erlang__is_map__1 [_] = boolToTerm false
+erlang__is_map__1 [ErlangMap _] = toErl true
+erlang__is_map__1 [_] = toErl false
 erlang__is_map__1 args = EXC.badarity (ErlangFun 1 erlang__is_map__1) args
 
 erlang__is_function__2 :: ErlangFun
@@ -733,8 +719,8 @@ erlang__is_function__2 args = EXC.badarity (ErlangFun 2 erlang__is_function__2) 
 
 erlang__is_record__3 :: ErlangFun
 erlang__is_record__3 [term, ErlangAtom tag, ErlangInt bsize]
-  | DM.Just size <- H.bigIntToInt bsize = case term of
-    ErlangTuple arr | DM.Just (ErlangAtom termTag) <- DA.head arr, size == DA.length arr -> boolToTerm $ tag == termTag
+  | DM.Just size <- Util.bigIntToInt bsize = case term of
+    ErlangTuple arr | DM.Just (ErlangAtom termTag) <- DA.head arr, size == DA.length arr -> toErl $ tag == termTag
     _ -> ErlangAtom "false"
 erlang__is_record__3 [_,_,_] = EXC.badarg unit
 erlang__is_record__3 args = EXC.badarity (ErlangFun 3 erlang__is_record__3) args
@@ -749,8 +735,8 @@ erlang__integer_to_binary__2 args = EXC.badarity (ErlangFun 2 erlang__integer_to
 
 erlang__integer_to_list__2 :: ErlangFun
 erlang__integer_to_list__2 [ErlangInt num, ErlangInt bbase]
-    | DM.Just base <- H.bigIntToInt bbase
-    = H.make_string $ DBI.toBase base num
+    | DM.Just base <- Util.bigIntToInt bbase
+    = toErl $ DBI.toBase base num
 erlang__integer_to_list__2 [_,_] = EXC.badarg unit
 erlang__integer_to_list__2 args = EXC.badarity (ErlangFun 2 erlang__integer_to_list__2) args
 
@@ -761,8 +747,8 @@ erlang__list_to_float__1 args = EXC.badarity (ErlangFun 1 erlang__list_to_float_
 
 erlang__list_to_integer__2 :: ErlangFun
 erlang__list_to_integer__2 [t, ErlangInt bbase]
-  | DM.Just base <- H.bigIntToInt bbase
-  , DM.Just i <- H.erlangListToString t >>= DBI.fromBase base = ErlangInt i
+  | DM.Just base <- Util.bigIntToInt bbase
+  , DM.Just i <- fromErl t >>= DBI.fromBase base = ErlangInt i
 erlang__list_to_integer__2 [_,_] = EXC.badarg unit
 erlang__list_to_integer__2 args = EXC.badarity (ErlangFun 2 erlang__list_to_integer__2) args
 
@@ -788,18 +774,18 @@ erlang__iolist_to_iovec__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_to_io
 
 erlang__iolist_to_binary__1 :: ErlangFun
 erlang__iolist_to_binary__1 [b@(ErlangBinary _)] = b
-erlang__iolist_to_binary__1 [el] | H.isEList el = ErlangBinary
+erlang__iolist_to_binary__1 [el] | isEList el = ErlangBinary
     $ BIN.fromFoldable $ DL.reverse $ flatInts DL.Nil $ el where
 
       flatInts :: DL.List Int -> ErlangTerm -> DL.List Int
       flatInts acc (ErlangBinary buf) =
         flatInts acc $
-        arrayToErlangList $
+        toErl $
         map (DBI.fromInt >>> ErlangInt) $
         BIN.toArray $
         buf
       flatInts acc (ErlangInt bi)
-        | DM.Just i <- H.bigIntToInt bi =
+        | DM.Just i <- Util.bigIntToInt bi =
           if i >= 0 && i < 256
           then DL.Cons i acc
           else EXC.badarg unit
@@ -834,7 +820,8 @@ erlang__pid_to_list__1 [_] = EXC.badarg unit
 erlang__pid_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__pid_to_list__1) args
 
 erlang__binary_to_integer__2 :: ErlangFun
-erlang__binary_to_integer__2 [ErlangBinary bin, base] = erlang__list_to_integer__2 [BIN.to_erlang_list bin, base]
+erlang__binary_to_integer__2 [ErlangBinary bin, base] =
+  erlang__list_to_integer__2 [BIN.toErlangList bin, base]
 erlang__binary_to_integer__2 [_,_] = EXC.badarg unit
 erlang__binary_to_integer__2 args = EXC.badarity (ErlangFun 2 erlang__binary_to_integer__2) args
 
@@ -860,21 +847,20 @@ erlang__float_to_list__2 args = EXC.badarity (ErlangFun 2 erlang__float_to_list_
 
 erlang__binary_to_list__3 :: ErlangFun
 erlang__binary_to_list__3 [ErlangBinary bin, ErlangInt dl, ErlangInt dr]
-  | DM.Just l <- H.bigIntToInt dl, DM.Just r <- H.bigIntToInt dr
-  = BIN.to_erlang_list_from_to bin l r
+  | DM.Just l <- Util.bigIntToInt dl, DM.Just r <- Util.bigIntToInt dr
+  = BIN.toErlangListFromTo bin l r
 erlang__binary_to_list__3 [_,_,_] = EXC.badarg unit
 erlang__binary_to_list__3 args = EXC.badarity (ErlangFun 3 erlang__binary_to_list__3) args
 
 erlang__list_to_atom__1 :: ErlangFun
 erlang__list_to_atom__1 [el] =
-  case erlangListToList el of
+  case fromErl el of
     DM.Nothing -> EXC.badarg unit
     DM.Just l -> ErlangAtom
       $ CodePoints.fromCodePointArray
-      $ DA.fromFoldable
       $ map (\term -> case term of
                 ErlangInt bi
-                  | DM.Just i <- H.bigIntToInt bi
+                  | DM.Just i <- Util.bigIntToInt bi
                   , DM.Just c <- Char.fromCharCode i ->
                   CodePoints.codePointFromChar c
                 _ -> EXC.badarg unit
@@ -891,7 +877,7 @@ erlang__ref_to_list__1 [_] = EXC.badarg unit
 erlang__ref_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__ref_to_list__1) args
 
 erlang__binary_to_list__1 :: ErlangFun
-erlang__binary_to_list__1 [ErlangBinary bin] = BIN.to_erlang_list bin
+erlang__binary_to_list__1 [ErlangBinary bin] = BIN.toErlangList bin
 erlang__binary_to_list__1 [_] = EXC.badarg unit
 erlang__binary_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__binary_to_list__1) args
 
@@ -906,7 +892,7 @@ erlang__term_to_binary__2 [_,_] = EXC.badarg unit
 erlang__term_to_binary__2 args = EXC.badarity (ErlangFun 2 erlang__term_to_binary__2) args
 
 erlang__tuple_to_list__1 :: ErlangFun
-erlang__tuple_to_list__1 [ErlangTuple t] = arrayToErlangList t
+erlang__tuple_to_list__1 [ErlangTuple t] = toErl t
 erlang__tuple_to_list__1 [_] = EXC.badarg unit
 erlang__tuple_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__tuple_to_list__1) args
 
@@ -917,7 +903,7 @@ erlang__binary_to_term__1 args = EXC.badarity (ErlangFun 1 erlang__binary_to_ter
 
 erlang__list_to_integer__1 :: ErlangFun
 erlang__list_to_integer__1 [t]
-  | DM.Just i <- H.erlangListToString t >>= DBI.fromString = ErlangInt i
+  | DM.Just i <- fromErl t >>= DBI.fromString = ErlangInt i
 erlang__list_to_integer__1 [_] = EXC.badarg unit
 erlang__list_to_integer__1 args = EXC.badarity (ErlangFun 1 erlang__list_to_integer__1) args
 
@@ -951,12 +937,12 @@ erlang__binary_to_integer__1 [arg] = erlang__binary_to_integer__2 [arg, ErlangIn
 erlang__binary_to_integer__1 args = EXC.badarity (ErlangFun 1 erlang__binary_to_integer__1) args
 
 erlang__atom_to_list__1 :: ErlangFun
-erlang__atom_to_list__1 [ErlangAtom atom] = H.make_string atom
+erlang__atom_to_list__1 [ErlangAtom atom] = toErl atom
 erlang__atom_to_list__1 [_] = EXC.badarg unit
 erlang__atom_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__atom_to_list__1) args
 
 erlang__integer_to_list__1 :: ErlangFun
-erlang__integer_to_list__1 [ErlangInt num] = H.make_string $ DBI.toString num
+erlang__integer_to_list__1 [ErlangInt num] = toErl $ DBI.toString num
 erlang__integer_to_list__1 [_] = EXC.badarg unit
 erlang__integer_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__integer_to_list__1) args
 
@@ -976,13 +962,12 @@ erlang__float_to_binary__2 [_,_] = EXC.badarg unit
 erlang__float_to_binary__2 args = EXC.badarity (ErlangFun 2 erlang__float_to_binary__2) args
 
 erlang__list_to_tuple__1 :: ErlangFun
-erlang__list_to_tuple__1 [list] | DM.Just r <- erlangListToList list =
-    ErlangTuple (DA.fromFoldable r)
+erlang__list_to_tuple__1 [list] | DM.Just r <- fromErl list = ErlangTuple r
 erlang__list_to_tuple__1 [_] = EXC.badarg unit
 erlang__list_to_tuple__1 args = EXC.badarity (ErlangFun 1 ErlangTuple) args
 
 erlang__bitstring_to_list__1 :: ErlangFun
-erlang__bitstring_to_list__1 [ErlangBinary bin] = BIN.to_erlang_list bin
+erlang__bitstring_to_list__1 [ErlangBinary bin] = BIN.toErlangList bin
 erlang__bitstring_to_list__1 [_] = EXC.badarg unit
 erlang__bitstring_to_list__1 args = EXC.badarity (ErlangFun 1 erlang__bitstring_to_list__1) args
 
@@ -1003,23 +988,23 @@ erlang__get__1 args = EXC.badarity (ErlangFun 1 erlang__get__1) args
 
 foreign import do_get_0 :: (ErlangTerm -> ErlangTerm -> ErlangTerm) -> Array ErlangTerm
 erlang__get__0 :: ErlangFun
-erlang__get__0 [] = arrayToErlangList $ do_get_0 (\x y -> ErlangTuple [x,y])
+erlang__get__0 [] = toErl $ do_get_0 (\x y -> ErlangTuple [x,y])
 erlang__get__0 args = EXC.badarity (ErlangFun 0 erlang__get__0) args
 
 foreign import do_get_keys_0 :: Unit -> Array ErlangTerm
 erlang__get_keys__0 :: ErlangFun
-erlang__get_keys__0 [] = arrayToErlangList $ do_get_keys_0 unit
+erlang__get_keys__0 [] = toErl $ do_get_keys_0 unit
 erlang__get_keys__0 args = EXC.badarity (ErlangFun 0 erlang__get_keys__0) args
 
 foreign import do_get_keys_1 :: (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> Array ErlangTerm
 erlang__get_keys__1 :: ErlangFun
-erlang__get_keys__1 [val] = arrayToErlangList $ do_get_keys_1 (==) val
+erlang__get_keys__1 [val] = toErl $ do_get_keys_1 (==) val
 erlang__get_keys__1 [_] = EXC.badarg unit
 erlang__get_keys__1 args = EXC.badarity (ErlangFun 1 erlang__get_keys__1) args
 
 foreign import do_erase_0 :: (ErlangTerm -> ErlangTerm -> ErlangTerm) -> Array ErlangTerm
 erlang__erase__0 :: ErlangFun
-erlang__erase__0 [] = arrayToErlangList $ do_erase_0 (\x y -> ErlangTuple [x,y])
+erlang__erase__0 [] = toErl $ do_erase_0 (\x y -> ErlangTuple [x,y])
 erlang__erase__0 args = unimplemented "erlang__erase__0"
 
 foreign import do_erase_1 :: (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> ErlangTerm -> ErlangTerm
@@ -1155,7 +1140,7 @@ erlang__is_alive__0 args = unimplemented "erlang__is_alive__0"
 
 erlang__make_tuple__2 :: ErlangFun
 erlang__make_tuple__2 [ErlangInt barity, what]
-  | DM.Just arity <- H.bigIntToInt barity
+  | DM.Just arity <- Util.bigIntToInt barity
   = ErlangTuple $ DA.replicate arity what
 erlang__make_tuple__2 [_,_] = EXC.badarg unit
 erlang__make_tuple__2 args = EXC.badarity (ErlangFun 2 erlang__make_tuple__2) args
@@ -1168,7 +1153,7 @@ erlang__and__2 args = EXC.badarity (ErlangFun 2 erlang__and__2) args
 foreign import do_is_process_alive_1 :: Int -> Boolean
 erlang__is_process_alive__1 :: ErlangFun
 erlang__is_process_alive__1 [ErlangPID id] =
-    boolToTerm $ do_is_process_alive_1 id
+    toErl $ do_is_process_alive_1 id
 erlang__is_process_alive__1 [_] = EXC.badarg unit
 erlang__is_process_alive__1 args = EXC.badarity (ErlangFun 1 erlang__is_process_alive__1) args
 
@@ -1189,7 +1174,7 @@ erlang__spawn_opt__2 args = EXC.badarity (ErlangFun 2 erlang__spawn_opt__2) args
 
 erlang__element__2 :: ErlangFun
 erlang__element__2 [ErlangInt bpos, ErlangTuple array]
-  | DM.Just pos <- H.bigIntToInt bpos
+  | DM.Just pos <- Util.bigIntToInt bpos
   , DM.Just res <- DA.index array (pos-1) = res
 erlang__element__2 [_,_] = EXC.badarg unit
 erlang__element__2 args = EXC.badarity (ErlangFun 2 erlang__element__2) args
@@ -1280,9 +1265,9 @@ make_hash (ErlangTuple t) hash =
 
 make_hash ErlangEmptyList hash = hash * c_FUNNY_NUMBER3 + (DU.fromInt 1)
 
-make_hash (ErlangCons (ErlangInt n) t@(ErlangCons _ _)) hash | n < DBI.fromInt 256, DM.Just i <- H.bigIntToInt n =
+make_hash (ErlangCons (ErlangInt n) t@(ErlangCons _ _)) hash | n < DBI.fromInt 256, DM.Just i <- Util.bigIntToInt n =
     make_hash t (hash*c_FUNNY_NUMBER2 + (DU.fromInt i))
-make_hash (ErlangCons (ErlangInt n) t) hash | n < DBI.fromInt 256, DM.Just i <- H.bigIntToInt n =
+make_hash (ErlangCons (ErlangInt n) t) hash | n < DBI.fromInt 256, DM.Just i <- Util.bigIntToInt n =
     (make_hash t (hash*c_FUNNY_NUMBER2 + (DU.fromInt i))) * c_FUNNY_NUMBER8
 make_hash (ErlangCons h t@(ErlangCons _ _)) hash =
     make_hash t (make_hash h hash)
@@ -1303,11 +1288,11 @@ pad_arr a | DAN.length a < 4 = pad_arr (DAN.cons 0 a)
 hash_atom s = hash_atom_int s (DU.fromInt 0)
 hash_atom_int :: String -> DU.UInt -> DU.UInt
 hash_atom_int s hash =
-    case DSTR.uncons s of
+    case DS.uncons s of
         DM.Nothing -> hash
         DM.Just {head: h, tail: t} ->
             let
-                v = (DU.fromInt (H.codePointToInt h))
+                v = (DU.fromInt (Util.codePointToInt h))
                 hash1 = ((DU.shl hash (DU.fromInt 4)) + v)
                 g = DU.shr hash1 (DU.fromInt 28)
                 b = g > (DU.fromInt 0)
@@ -1454,7 +1439,7 @@ erlang__send_nosuspend__3 _ = EXC.badarg unit
 erlang__send_nosuspend__2 :: ErlangFun
 erlang__send_nosuspend__2 args =
   let a = erlang__send__2 args
-  in boolToTerm true
+  in toErl true
 
 erlang__send__3 :: ErlangFun
 erlang__send__3 [arg1, arg2, _] = erlang__send__2 [arg1, arg2]
@@ -1636,7 +1621,7 @@ erlang__port_connect__2 args = EXC.badarity (ErlangFun 2 erlang__port_connect__2
 
 erlang__setelement__3 :: ErlangFun
 erlang__setelement__3 [ErlangInt bpos, ErlangTuple tuple, new_el]
-    | DM.Just pos <- H.bigIntToInt bpos
+    | DM.Just pos <- Util.bigIntToInt bpos
     , DM.Just new_tuple <- DA.updateAt (pos - 1) new_el tuple =
     ErlangTuple new_tuple
 erlang__setelement__3 [_,_,_] = EXC.badarg unit
@@ -2106,11 +2091,11 @@ erlang__bump_reductions__1 args = EXC.badarity (ErlangFun 1 erlang__bump_reducti
 
 erlang__make_tuple__3 :: ErlangFun
 erlang__make_tuple__3 [ErlangInt barity, def, list]
-  | DM.Just arity <- H.bigIntToInt barity, arity >= 0 =
+  | DM.Just arity <- Util.bigIntToInt barity, arity >= 0 =
   let processList :: ErlangTerm -> Map.Map Int ErlangTerm -> Map.Map Int ErlangTerm
       processList ErlangEmptyList acc = acc
       processList (ErlangCons (ErlangTuple [(ErlangInt bidx), val]) rest) acc
-        | DM.Just idx <- H.bigIntToInt bidx, idx > 0, idx <= arity =
+        | DM.Just idx <- Util.bigIntToInt bidx, idx > 0, idx <= arity =
           processList rest (Map.insert idx val acc)
       processList _ _ = EXC.badarg unit
 
@@ -2208,7 +2193,7 @@ code__ensure_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_loaded__1) 
 
 code__ensure_modules_loaded__1 :: ErlangFun
 code__ensure_modules_loaded__1 [emodules]
-  | DM.Just modules <- erlangListToList emodules >>=
+  | DM.Just modules <- fromErl emodules >>=
                        traverse (\term -> case term of
                                     ErlangAtom mod -> DM.Just mod
                                     _ -> DM.Nothing
@@ -2223,7 +2208,7 @@ code__ensure_modules_loaded__1 [emodules]
             ErlangTuple [ErlangAtom "module", ErlangAtom lm] | lm == m -> go rest acc
             ErlangTuple [ErlangAtom "error", err] ->
               go rest (ErlangCons (ErlangTuple [ErlangAtom m, err]) acc)
-            err -> unsafePerformEffect (throw $ "wtf in ensure_modules_loaded")
+            err -> Util.runtimeError "wtf in ensure_modules_loaded"
 code__ensure_modules_loaded__1 [_] = EXC.function_clause unit
 code__ensure_modules_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_modules_loaded__1) args
 
@@ -2231,15 +2216,15 @@ code__ensure_modules_loaded__1 args = EXC.badarity (ErlangFun 1 code__ensure_mod
 
 binary__decode_unsigned__1 :: ErlangFun
 binary__decode_unsigned__1 [ErlangBinary buf] =
-  ErlangInt $ BIN.decode_unsigned_big buf
+  ErlangInt $ BIN.decodeUnsignedBig buf
 binary__decode_unsigned__1 [_, _] = EXC.badarg unit
 binary__decode_unsigned__1 args = EXC.badarity (ErlangFun 1 binary__decode_unsigned__1) args
 
 binary__decode_unsigned__2 :: ErlangFun
 binary__decode_unsigned__2 [ErlangBinary buf, ErlangAtom "little"] =
-  ErlangInt $ BIN.decode_unsigned_little buf
+  ErlangInt $ BIN.decodeUnsignedLittle buf
 binary__decode_unsigned__2 [ErlangBinary buf, ErlangAtom "big"] =
-  ErlangInt $ BIN.decode_unsigned_big buf
+  ErlangInt $ BIN.decodeUnsignedBig buf
 binary__decode_unsigned__2 [_, _] = EXC.badarg unit
 binary__decode_unsigned__2 args = EXC.badarity (ErlangFun 2 binary__decode_unsigned__2) args
 
@@ -2250,12 +2235,12 @@ binary__encode_unsigned__1 [_] = EXC.badarg unit
 binary__encode_unsigned__1 args = EXC.badarity (ErlangFun 1 binary__encode_unsigned__1) args
 
 binary__encode_unsigned__2 :: ErlangFun
-binary__encode_unsigned__2 [ErlangInt i, _] | DM.Just 0 <- H.bigIntToInt i =
+binary__encode_unsigned__2 [ErlangInt i, _] | DM.Just 0 <- Util.bigIntToInt i =
   ErlangBinary (BIN.fromFoldable [0])
 binary__encode_unsigned__2 [ErlangInt i, ErlangAtom "little"] =
-  ErlangBinary $ BIN.from_int_bound i DM.Nothing 8 BIN.Little
+  ErlangBinary $ BIN.fromIntBound i DM.Nothing 8 BIN.Little
 binary__encode_unsigned__2 [ErlangInt i, ErlangAtom "big"] =
-  ErlangBinary $ BIN.from_int_bound i DM.Nothing 8 BIN.Big
+  ErlangBinary $ BIN.fromIntBound i DM.Nothing 8 BIN.Big
 binary__encode_unsigned__2 [_, _] = EXC.badarg unit
 binary__encode_unsigned__2 args = EXC.badarity (ErlangFun 2 binary__encode_unsigned__2) args
 
@@ -2267,8 +2252,8 @@ binary__split__3 :: ErlangFun
 binary__split__3 [bin, pat@(ErlangBinary _), opts] =
   binary__split__3 [bin, ErlangCons pat ErlangEmptyList, opts]
 binary__split__3 [ErlangBinary buf, epat, eopts]
-  | DM.Just pat <- erlangListToList epat
-  , DM.Just opts <- erlangListToList eopts
+  | DM.Just (pat :: Array ErlangTerm) <- fromErl epat
+  , DM.Just opts <- fromErl eopts
   = BIN.split buf patterns options where
     patterns = map (\p -> case p of
                        ErlangBinary b | BIN.rawSize b /= 0 -> b
@@ -2279,8 +2264,8 @@ binary__split__3 [ErlangBinary buf, epat, eopts]
                       ErlangAtom "trim_all" -> BIN.TrimAll
                       ErlangAtom "global" -> BIN.Global
                       ErlangTuple [ErlangAtom "scope", ErlangTuple [ErlangInt bstart, ErlangInt blen]]
-                          | DM.Just start <- H.bigIntToInt bstart
-                          , DM.Just len <- H.bigIntToInt blen
+                          | DM.Just start <- Util.bigIntToInt bstart
+                          , DM.Just len <- Util.bigIntToInt blen
                           , start >= 0
                             -> BIN.Scope start len
                       _ -> EXC.badarg unit
@@ -2297,8 +2282,8 @@ binary__part__2 args = EXC.badarity (ErlangFun 2 binary__part__2) args
 
 binary__part__3 :: ErlangFun
 binary__part__3 [ErlangBinary buf, ErlangInt bloc, ErlangInt blen]
-  | DM.Just loc <- H.bigIntToInt bloc
-  , DM.Just len <- H.bigIntToInt blen
+  | DM.Just loc <- Util.bigIntToInt bloc
+  , DM.Just len <- Util.bigIntToInt blen
   = let {from, to} = if len < 0
                        then {from: loc + len, to: loc}
                        else {from: loc,       to: loc + len}
@@ -2311,7 +2296,7 @@ binary__part__3 args = EXC.badarity (ErlangFun 3 binary__part__3) args
 
 binary__copy__2 :: ErlangFun
 binary__copy__2 [ErlangBinary buf, ErlangInt btimes]
-  | DM.Just times <- H.bigIntToInt btimes
+  | DM.Just times <- Util.bigIntToInt btimes
   = ErlangBinary
     $ BIN.fromFoldable
     $ let cycle 0 acc _ = acc

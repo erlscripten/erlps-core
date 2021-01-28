@@ -9,12 +9,9 @@ module Erlang.Exception
   , badarity, badmatch, badarg, badarg1, badrecord, bad_generator, badmap, badkey
   ) where
 
-import Prelude
-import Erlang.Type
---import Erlang.Helpers
+import Prelude (Unit, unit, ($))
+import Erlang.Type (ErlangTerm(..), toErl)
 
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
 
 buildException :: String -> ErlangTerm -> String -> ErlangTerm
 buildException exType exPayload exStack = ErlangTuple
@@ -88,7 +85,7 @@ badarg1 term = error (ErlangTuple [ErlangAtom "badarg", term])
 
 badarity :: ErlangTerm -> Array ErlangTerm -> ErlangTerm
 badarity fun args =
-  error (ErlangTuple [ErlangAtom "badarity", ErlangTuple [fun, arrayToErlangList args]])
+  error (ErlangTuple [ErlangAtom "badarity", ErlangTuple [fun, toErl args]])
 
 badrecord :: ErlangTerm -> ErlangTerm
 badrecord _ = error (ErlangAtom "TODO: PROPER BADRECORD ERROR")

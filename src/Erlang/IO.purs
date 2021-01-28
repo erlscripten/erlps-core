@@ -18,22 +18,12 @@ Use this code at your own risk - the authors are just a mischievous raccoon and 
 Erlscripten v0.0.2
 -}
 
-import Prelude
-import Data.Array as DA
-import Data.List as DL
-import Data.Maybe as DM
-import Data.Map as Map
-import Data.Tuple as Tup
+import Prelude (unit, (==))
 import Data.BigInt as DBI
 import Erlang.Builtins as BIF
-import Erlang.Binary as BIN
-import Erlang.Helpers
+import Erlang.Helpers (falsifyErrors)
 import Erlang.Exception as EXC
-import Erlang.Type (ErlangFun, ErlangTerm(..))
-import Effect (Effect)
-import Effect.Unsafe (unsafePerformEffect)
-import Effect.Exception (throw)
-import Partial.Unsafe (unsafePartial)
+import Erlang.Type (ErlangFun, ErlangTerm(..), isEAtom, isEList, isETuple, toErl)
 
 
 erlps__to_tuple__1 :: ErlangFun
@@ -67,7 +57,7 @@ erlps__o_request__3 [io_0, request_1, func_2] =
                             in (ErlangTuple [(ErlangAtom "EXIT"), tup_el_19])
                           (ErlangTuple [(ErlangAtom "exit"), payload_22, _]) ->
                             (ErlangTuple [(ErlangAtom "EXIT"), payload_22])
-                          ex_14 -> (EXC.raise ex_14)))
+                          ex -> (EXC.raise ex)))
               in
                 case match_expr_27 of
                   (ErlangTuple [(ErlangAtom "EXIT"),
@@ -84,9 +74,6 @@ erlps__o_request__3 [io_0, request_1, func_2] =
                   _ -> (EXC.badmatch match_expr_27)
             _ -> (EXC.badmatch match_expr_11)
       other_40 -> other_40
-      something_else -> (EXC.case_clause something_else)
-erlps__o_request__3 [arg_41, arg_42, arg_43] =
-  (EXC.function_clause unit)
 erlps__o_request__3 args =
   (EXC.badarity (ErlangFun 3 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
 
@@ -160,7 +147,6 @@ erlps__columns__1 [io_0] =
                          _ -> (EXC.badarg1 lop_7)))) ->
         (ErlangTuple [(ErlangAtom "ok"), n_6])
       _ -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "enotsup")])
-      something_else -> (EXC.case_clause something_else)
 erlps__columns__1 [arg_15] = (EXC.function_clause unit)
 erlps__columns__1 args =
   (EXC.badarity (ErlangFun 1 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -191,7 +177,6 @@ erlps__rows__1 [io_0] =
                          _ -> (EXC.badarg1 lop_7)))) ->
         (ErlangTuple [(ErlangAtom "ok"), n_6])
       _ -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "enotsup")])
-      something_else -> (EXC.case_clause something_else)
 erlps__rows__1 [arg_15] = (EXC.function_clause unit)
 erlps__rows__1 args =
   (EXC.badarity (ErlangFun 1 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -332,7 +317,6 @@ erlps__read__2 [io_0, prompt_1] =
         (ErlangTuple [(ErlangAtom "error"), e_19])
       (ErlangTuple [(ErlangAtom "eof"), _endline_23]) -> (ErlangAtom "eof")
       other_24 -> other_24
-      something_else -> (EXC.case_clause something_else)
 erlps__read__2 [arg_25, arg_26] = (EXC.function_clause unit)
 erlps__read__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -366,7 +350,6 @@ erlps__read__4 [io_0, prompt_1, pos0_2, options_3] =
         error_26
       eof_28@(ErlangTuple [(ErlangAtom "eof"), _endlocation_27]) -> eof_28
       other_29 -> other_29
-      something_else -> (EXC.case_clause something_else)
 erlps__read__4 [arg_30, arg_31, arg_32, arg_33] =
   (EXC.function_clause unit)
 erlps__read__4 args =
@@ -467,7 +450,6 @@ erlps__request__2 [name_0, request_1] | (isEAtom name_0) =
     case case_2 of
       (ErlangAtom "undefined") -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "arguments")])
       pid_6 -> (erlps__request__2 [pid_6, request_1])
-      something_else -> (EXC.case_clause something_else)
 erlps__request__2 [arg_9, arg_10] = (EXC.function_clause unit)
 erlps__request__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -490,7 +472,6 @@ erlps__execute_request__2 [pid_0,
           _ | (ErlangAtom "true") <- ((falsifyErrors (\ _ -> convert_1))) ->
             (erlps__convert_binaries__1 [reply_12])
           _ -> reply_12
-          _ -> (EXC.if_clause unit)
       something_else -> (EXC.case_clause something_else)
 erlps__execute_request__2 [arg_14, arg_15] =
   (EXC.function_clause unit)
@@ -526,7 +507,6 @@ erlps__requests__2 [name_0, requests_1] | (isEAtom name_0) =
     case case_2 of
       (ErlangAtom "undefined") -> (ErlangTuple [(ErlangAtom "error"), (ErlangAtom "arguments")])
       pid_6 -> (erlps__requests__2 [pid_6, requests_1])
-      something_else -> (EXC.case_clause something_else)
 erlps__requests__2 [arg_9, arg_10] = (EXC.function_clause unit)
 erlps__requests__2 args =
   (EXC.badarity (ErlangFun 2 (\ _ -> (ErlangAtom "purs_tco_sucks"))) args)
@@ -644,7 +624,7 @@ erlps__io_request__2 [pid_0,
           (ErlangCons format_1 (ErlangCons args_2 ErlangEmptyList))])
   in (erlps__bc_req__3 [pid_0, arg_4, (ErlangAtom "false")])
 erlps__io_request__2 [pid_0, (ErlangAtom "nl")] =
-  let    tup_el_5 = (make_string "\n")
+  let    tup_el_5 = (toErl "\n")
   in let
     arg_2 = (ErlangTuple [(ErlangAtom "put_chars"), (ErlangAtom "unicode"), tup_el_5])
   in (erlps__bc_req__3 [pid_0, arg_2, (ErlangAtom "false")])
@@ -663,7 +643,7 @@ erlps__io_request__2 [_pid_0,
                 in (ErlangTuple [(ErlangAtom "EXIT"), tup_el_13])
               (ErlangTuple [(ErlangAtom "exit"), payload_16, _]) ->
                 (ErlangTuple [(ErlangAtom "EXIT"), payload_16])
-              ex_8 -> (EXC.raise ex_8)))
+              ex -> (EXC.raise ex)))
   in let
     request_24 =
       case case_4 of
@@ -672,7 +652,6 @@ erlps__io_request__2 [_pid_0,
                           (\ _ -> (BIF.erlang__is_binary__1 [binary_19])))) ->
           (ErlangTuple [(ErlangAtom "put_chars"), enc_1, binary_19])
         _ -> request0_3
-        something_else -> (EXC.case_clause something_else)
   in (ErlangTuple [(ErlangAtom "false"), request_24])
 erlps__io_request__2 [pid_0,
                       (ErlangTuple [(ErlangAtom "fread"), prompt_1, format_2])]

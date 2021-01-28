@@ -1,31 +1,30 @@
+-- | Module for handling binaries (implemented as nodejs buffers).
+-- The stored values should be unsigned integers lesser than 256.
+-- Binary size is restricted to fit in PureScript's Int range
 module Erlang.Binary where
 
 import Prelude
-import Erlang.Type
-import Erlang.Helpers as H
-import Erlang.Exception as EXC
 import Node.Buffer as Buffer
 import Node.Buffer(Buffer)
-import Node.Encoding
-import Data.BigInt as BI
 import Effect (Effect)
 import Effect.Unsafe (unsafePerformEffect)
-import Effect.Exception (throw, throwException)
-import Data.UInt (UInt, toInt, fromInt)
-import Data.Array.NonEmpty as NonEmpty
 import Partial.Unsafe (unsafePartial)
 import Data.Array as DA
 import Data.Maybe as DM
 import Data.Tuple as DT
 import Data.List as DL
-import Data.Int as Int
 import Data.BigInt as DBI
-import Data.Maybe(Maybe, fromJust)
-import Data.Foldable
+import Data.Maybe (fromJust)
+import Data.Foldable (class Foldable, elem, find, findMap)
 
+import Erlang.Type (ErlangTerm(..), fromErl, toErl)
+import Erlang.Utils as Util
+import Erlang.Exception as EXC
 
 data Endian = Big | Little
 data Sign   = Signed | Unsigned
+
+-- | Stateful binary operation that may chop off values out of binary
 data BinResult = Nah | Ok ErlangTerm Buffer.Buffer
 
 fromFoldable :: forall f. Foldable f => f Int -> Buffer
@@ -34,79 +33,92 @@ fromFoldable f = unsafePerformEffect $
                  map (_ `mod` 256) $
                  DA.fromFoldable f
 
+-- | Forcefully get the buffer. Throws `badarg` on failure
 buffer :: ErlangTerm -> Buffer
 buffer (ErlangBinary buf) = buf
 buffer _ = EXC.badarg unit
 
+-- | Concatenates an array of buffers
 concat :: Array Buffer -> Buffer
 concat args = unsafePerformEffect $ Buffer.concat args
 
-concat_erl :: ErlangTerm -> ErlangTerm
-concat_erl listTerm =
-  case erlangListToList listTerm of
+-- | Concatenates
+concatErl :: ErlangTerm -> ErlangTerm
+concatErl listTerm =
+  case fromErl listTerm of
     DM.Nothing -> EXC.bad_generator listTerm
-    DM.Just l -> ErlangBinary $ concat (DA.fromFoldable $ map buffer l)
+    DM.Just l -> ErlangBinary $ concat (map buffer l)
 
+-- | Checks if buffer is empty
 empty :: Buffer -> Boolean
 empty buf = unsafePerformEffect $ map (_ == 0) (Buffer.size buf)
 
+-- | Converts to array of integers
 toArray :: Buffer -> Array Int
 toArray = unsafePerformEffect <<< Buffer.toArray
 
+-- | Returns size as raw integer
 rawSize :: Buffer -> Int
 rawSize = unsafePerformEffect <<< Buffer.size
 
+-- | Returns size as an ErlangTerm
 size :: Buffer -> ErlangTerm
 size = ErlangInt <<< DBI.fromInt <<< unsafePerformEffect <<< Buffer.size
 
-packed_size :: ErlangTerm -> ErlangTerm
-packed_size (ErlangBinary b) = size b
-packed_size _ = EXC.badarg unit
+-- | Calculates size of an Erlang binary or throws `badarg` if
+-- something else was provided
+packedSize :: ErlangTerm -> ErlangTerm
+packedSize (ErlangBinary b) = size b
+packedSize _ = EXC.badarg unit
 
-chop_int :: Buffer.Buffer -> DBI.BigInt -> Int -> Endian -> Sign -> BinResult
-chop_int buf bsize unit endian sign
-  | DM.Just size <- H.bigIntToInt bsize
+-- | Chops off an integer of given size and unit from a buffer
+chopInt :: Buffer.Buffer -> DBI.BigInt -> Int -> Endian -> Sign -> BinResult
+chopInt buf bsize unit endian sign
+  | DM.Just isize <- Util.bigIntToInt bsize
     = unsafePerformEffect $ do
-  let chopSize = (size * unit) / 8
-  size <- Buffer.size buf
-  if size < chopSize
+  let chopSize = (isize * unit) / 8
+  bufsize <- Buffer.size buf
+  if bufsize < chopSize
     then pure Nah
     else do
     let chop = Buffer.slice 0 chopSize buf
-        rest = Buffer.slice chopSize size buf
+        rest = Buffer.slice chopSize bufsize buf
         nonSign = case endian of
-          Big    ->  (decode_unsigned_big chop)
-          Little ->  (decode_unsigned_little chop)
+          Big    ->  (decodeUnsignedBig chop)
+          Little ->  (decodeUnsignedLittle chop)
         regSign = case sign of
           Unsigned -> nonSign
           Signed ->
             let p = DBI.pow (DBI.fromInt 2) (DBI.fromInt $ chopSize * 8 - 1)
             in if nonSign < p then nonSign else nonSign - p * (DBI.fromInt 2)
     pure $ Ok (ErlangInt regSign) rest
-chop_int _ _ _ _ _ = EXC.badarg unit
+chopInt _ _ _ _ _ = EXC.badarg unit
 
-chop_bin :: Buffer.Buffer -> DBI.BigInt -> Int -> BinResult
-chop_bin buf bsize unit
-  | DM.Just size <- H.bigIntToInt bsize
+-- | Chops off a binary of a given size from a buffer
+chopBin :: Buffer.Buffer -> DBI.BigInt -> Int -> BinResult
+chopBin buf bsize unit
+  | DM.Just isize <- Util.bigIntToInt bsize
     = unsafePerformEffect $ do
-  let chopSize = (size * unit) / 8
-  size <- Buffer.size buf
-  if size < chopSize
+  let chopSize = (isize * unit) / 8
+  bufsize <- Buffer.size buf
+  if bufsize < chopSize
     then pure Nah
     else do
     let chop = Buffer.slice 0 chopSize buf
-        rest = Buffer.slice chopSize size buf
+        rest = Buffer.slice chopSize bufsize buf
     pure $ Ok (ErlangBinary chop) rest
-chop_bin _ _ _ = EXC.badarg unit
+chopBin _ _ _ = EXC.badarg unit
 
 foreign import arrayToFloat32 :: Array Int -> Number
 foreign import arrayToFloat64 :: Array Int -> Number
-chop_float :: Buffer.Buffer -> DBI.BigInt -> Int -> Endian -> BinResult
-chop_float buf bsize unit endian
-  | DM.Just size <- H.bigIntToInt bsize
+
+-- | Chops off a float of a given size from a buffer
+chopFloat :: Buffer.Buffer -> DBI.BigInt -> Int -> Endian -> BinResult
+chopFloat buf bsize unit endian
+  | DM.Just isize <- Util.bigIntToInt bsize
     = unsafePerformEffect $ do
   bufSize <- Buffer.size buf
-  let chopSize = (size * unit) / 8
+  let chopSize = (isize * unit) / 8
   if chopSize == 8 || chopSize == 4
     then do
       let chop = Buffer.slice 0 chopSize buf
@@ -121,46 +133,53 @@ chop_float buf bsize unit endian
                  else ErlangFloat (arrayToFloat32 trueChop)
                 ) rest
     else pure Nah
-chop_float _ _ _ _ = EXC.badarg unit
+chopFloat _ _ _ _ = EXC.badarg unit
 
-unsafe_at :: Buffer -> Int -> Int
-unsafe_at buf n = unsafePartial $ fromJust $ unsafePerformEffect $ (Buffer.getAtOffset n buf)
+-- | Forcefully checks a value at given index. Throws error on miss
+unsafeAt :: Buffer -> Int -> Int
+unsafeAt buf n = unsafePartial $ fromJust $ unsafePerformEffect $ (Buffer.getAtOffset n buf)
 
-decode_unsigned_big :: Buffer -> DBI.BigInt
-decode_unsigned_big buf = unsafePerformEffect (Buffer.size buf >>= go buf (DBI.fromInt 0)) where
+-- | Decodes unsigned integer in big-endian
+decodeUnsignedBig :: Buffer -> DBI.BigInt
+decodeUnsignedBig buf = unsafePerformEffect (Buffer.size buf >>= go buf (DBI.fromInt 0)) where
   go :: Buffer -> DBI.BigInt -> Int -> Effect DBI.BigInt
-  go buf acc size = do
-    case size of
+  go b acc bufsize = do
+    case bufsize of
       0 -> pure acc
       _ -> go
-           (Buffer.slice 1 size buf)
-           ((DBI.fromInt 256) * acc + DBI.fromInt (unsafe_at buf 0))
-           (size - 1)
+           (Buffer.slice 1 bufsize b)
+           ((DBI.fromInt 256) * acc + DBI.fromInt (unsafeAt b 0))
+           (bufsize - 1)
 
-decode_unsigned_little :: Buffer -> DBI.BigInt
-decode_unsigned_little buf = unsafePerformEffect (Buffer.size buf >>= go buf (DBI.fromInt 0)) where
+-- | Decodes unsigned integer in little-endian
+decodeUnsignedLittle :: Buffer -> DBI.BigInt
+decodeUnsignedLittle buf = unsafePerformEffect (Buffer.size buf >>= go buf (DBI.fromInt 0)) where
   go :: Buffer -> DBI.BigInt -> Int -> Effect DBI.BigInt
-  go buf acc size = do
-    case size of
+  go b acc bufsize = do
+    case bufsize of
       0 -> pure acc
       _ -> go
-           (Buffer.slice 0 (size - 1) buf)
-           ((DBI.fromInt 256) * acc + DBI.fromInt (unsafe_at buf (size - 1)))
-           (size - 1)
+           (Buffer.slice 0 (bufsize - 1) b)
+           ((DBI.fromInt 256) * acc + DBI.fromInt (unsafeAt b (bufsize - 1)))
+           (bufsize - 1)
 
-from_int :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
-from_int (ErlangInt n) (ErlangInt size) unit endian =
-  from_int_bound n (DM.Just size) unit endian
-from_int _ _ _ _ = EXC.badarg unit
+-- | Encodes an integer into a buffer of a certain sizes. Overflows cause
+-- "flip" of the value
+fromInt :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
+fromInt (ErlangInt n) (ErlangInt bsize) unit endian =
+  fromIntBound n (DM.Just bsize) unit endian
+fromInt _ _ _ _ = EXC.badarg unit
 
-from_int_bound :: DBI.BigInt -> DM.Maybe DBI.BigInt -> Int -> Endian -> Buffer
-from_int_bound n msize unit endian =
+-- | Encodes an integer into a buffer of an optional sizes. Overflows cause
+-- "flip" of the value. The size is unpacked.
+fromIntBound :: DBI.BigInt -> DM.Maybe DBI.BigInt -> Int -> Endian -> Buffer
+fromIntBound n msize unit endian =
   let bufSize = map ((_ * DBI.fromInt unit) >>> (_ / DBI.fromInt 8)) msize
       build x num acc =
-        if DM.maybe (num == DBI.fromInt 0) (\size -> size == DBI.fromInt 0) x
+        if DM.maybe (num == DBI.fromInt 0) (\isize -> isize == DBI.fromInt 0) x
         then acc
         else build (map (_ - DBI.fromInt 1) x) (num / DBI.fromInt 256)
-             (DL.Cons (unsafePartial $ DM.fromJust $ H.bigIntToInt $ num `mod` DBI.fromInt 256) acc)
+             (DL.Cons (unsafePartial $ DM.fromJust $ Util.bigIntToInt $ num `mod` DBI.fromInt 256) acc)
       big = build bufSize n DL.Nil
   in fromFoldable $
     case endian of
@@ -169,45 +188,52 @@ from_int_bound n msize unit endian =
 
 foreign import float32ToArray :: Number -> Array Int
 foreign import float64ToArray :: Number -> Array Int
-from_float :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
-from_float _ (ErlangInt bsize) unit_ _
-  | DM.Just size <- H.bigIntToInt bsize
-  , size * unit_ /= 32 && size * unit_ /= 64 = EXC.badarg unit
-from_float (ErlangInt i) s u e =
-  from_float (ErlangFloat (DBI.toNumber i)) s u e
-from_float (ErlangFloat f) (ErlangInt bsize) unit_ endian
-  | DM.Just size <- H.bigIntToInt bsize =
-  let big = case size * unit_ of
+
+-- | Encodes float value into a buffer
+fromFloat :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
+fromFloat _ (ErlangInt bsize) unit_ _
+  | DM.Just isize <- Util.bigIntToInt bsize
+  , isize * unit_ /= 32 && isize * unit_ /= 64 = EXC.badarg unit
+fromFloat (ErlangInt i) s u e =
+  fromFloat (ErlangFloat (DBI.toNumber i)) s u e
+fromFloat (ErlangFloat f) (ErlangInt bsize) unit_ endian
+  | DM.Just isize <- Util.bigIntToInt bsize =
+  let big = case isize * unit_ of
         32 -> float32ToArray f
         _  -> float64ToArray f
   in fromFoldable $ case endian of
     Little -> DA.reverse big
     Big -> big
-from_float _ _ _ _ = EXC.badarg unit
+fromFloat _ _ _ _ = EXC.badarg unit
 
-format_bin :: ErlangTerm -> ErlangTerm -> Int -> Buffer
-format_bin (ErlangBinary buf) (ErlangInt bsize) unit
-  | DM.Just size <- H.bigIntToInt bsize =
-  let bufSize = size * unit / 8
+-- | Slices binary from the beginning
+binPrefix :: ErlangTerm -> ErlangTerm -> Int -> Buffer
+binPrefix (ErlangBinary buf) (ErlangInt bsize) unit
+  | DM.Just isize <- Util.bigIntToInt bsize =
+  let bufSize = isize * unit / 8
   in Buffer.slice 0 bufSize buf
-format_bin _ _ _ = EXC.badarg unit
+binPrefix _ _ _ = EXC.badarg unit
 
-to_erlang_list_from_to :: Buffer -> Int -> Int -> ErlangTerm
-to_erlang_list_from_to buf from to =
-  if from < 1 || to > unsafePerformEffect (Buffer.size buf)
-  then EXC.badarg unit
-  else to_erlang_list (Buffer.slice (from - 1) (to - 1) buf)
-
-to_erlang_list :: Buffer -> ErlangTerm
-to_erlang_list =
-  arrayToErlangList
+-- | Converts a buffer into erlang list of ints
+toErlangList :: Buffer -> ErlangTerm
+toErlangList =
+  toErl
   <<< map (ErlangInt <<< DBI.fromInt)
   <<< unsafePerformEffect
   <<< Buffer.toArray
 
+-- | Converts a given range of buffer into erlang list of ints
+toErlangListFromTo :: Buffer -> Int -> Int -> ErlangTerm
+toErlangListFromTo buf from to =
+  if from < 1 || to > unsafePerformEffect (Buffer.size buf)
+  then EXC.badarg unit
+  else toErlangList (Buffer.slice (from - 1) (to - 1) buf)
+
 data SplitOpt = Global | Trim | TrimAll | Scope Int Int
 derive instance splitOptEq :: Eq SplitOpt
 
+-- | Splits buffer using given set of patterns into a list of binaries.
+-- Implements binary:split from Erlang stdlib.
 split :: forall f. Foldable f
       => Buffer -> f Buffer -> f SplitOpt -> ErlangTerm
 split buf pats opts =

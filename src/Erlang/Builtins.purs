@@ -7,6 +7,30 @@ module Erlang.Builtins
        , erlang__make_fun__3
        , erlang__function_exported__3
        , math__pi__0
+       , math__sin__1
+       , math__cos__1
+       , math__tan__1
+       , math__asin__1
+       , math__acos__1
+       , math__atan__1
+       , math__sinh__1
+       , math__cosh__1
+       , math__tanh__1
+       , math__asinh__1
+       , math__acosh__1
+       , math__atanh__1
+       , math__exp__1
+       , math__log__1
+       , math__log2__1
+       , math__log10__1
+       , math__sqrt__1
+       , math__erf__1
+       , math__erfc__1
+       , math__ceil__1
+       , math__floor__1
+       , math__atan2__2
+       , math__pow__2
+       , math__fmod__2
        , erlang__abs__1
        , erlang__ceil__1
        , erlang__floor__1
@@ -511,33 +535,57 @@ math_arr2 [ErlangFloat arg1, ErlangFloat arg2] f = ErlangFloat (f arg1 arg2)
 math_arr2 [_] _ = EXC.badarg unit
 math_arr2 args f = EXC.badarity (ErlangFun 2 (\a -> math_arr2 a f)) args
 
+math__sin__1 :: ErlangFun
 math__sin__1 args = math_arr1 args sin
+math__cos__1 :: ErlangFun
 math__cos__1 args = math_arr1 args cos
+math__tan__1 :: ErlangFun
 math__tan__1 args = math_arr1 args tan
+math__asin__1 :: ErlangFun
 math__asin__1 args = math_arr1 args asin
+math__acos__1 :: ErlangFun
 math__acos__1 args = math_arr1 args acos
+math__atan__1 :: ErlangFun
 math__atan__1 args = math_arr1 args atan
+math__sinh__1 :: ErlangFun
 math__sinh__1 args = math_arr1 args sinh
+math__cosh__1 :: ErlangFun
 math__cosh__1 args = math_arr1 args cosh
+math__tanh__1 :: ErlangFun
 math__tanh__1 args = math_arr1 args tanh
+math__asinh__1 :: ErlangFun
 math__asinh__1 args = math_arr1 args asinh
+math__acosh__1 :: ErlangFun
 math__acosh__1 args = math_arr1 args acosh
+math__atanh__1 :: ErlangFun
 math__atanh__1 args = math_arr1 args atanh
+math__exp__1 :: ErlangFun
 math__exp__1 args = math_arr1 args exp
+math__log__1 :: ErlangFun
 math__log__1 args = math_arr1 args log
+math__log2__1 :: ErlangFun
 math__log2__1 args = math_arr1 args log2
+math__log10__1 :: ErlangFun
 math__log10__1 args = math_arr1 args log10
+math__sqrt__1 :: ErlangFun
 math__sqrt__1 args = math_arr1 args sqrt
 -- FIXME: erf(X) = 2/sqrt(pi)*integral from 0 to X of exp(-t*t) dt.
 -- TODO: display middle finger when someone calls this xD
+math__erf__1 :: ErlangFun
 math__erf__1 args = unimplemented "math__erf__1"
 -- FIXME: erfc(X) = 1 - erf(X)
+math__erfc__1 :: ErlangFun
 math__erfc__1 args = unimplemented "math__erfc__1"
+math__ceil__1 :: ErlangFun
 math__ceil__1 args = math_arr1 args ceil
+math__floor__1 :: ErlangFun
 math__floor__1 args = math_arr1 args floor
 
+math__atan2__2 :: ErlangFun
 math__atan2__2 args = math_arr2 args atan2
+math__pow__2 :: ErlangFun
 math__pow__2 args = math_arr2 args pow
+math__fmod__2 :: ErlangFun
 math__fmod__2 args = math_arr2 args (%)
 
 erlang__abs__1 :: ErlangFun

@@ -301,7 +301,7 @@ instance ordErlangTermInst :: Ord ErlangTerm where
     compare = strongCmp
 
 
--- | Version of `ErlangTerm` that uses strong comparator as default
+-- | Version of `ErlangTerm` that uses weak comparator as default
 newtype WeakErlangTerm = WeakErlangTerm ErlangTerm
 unpackWeak :: WeakErlangTerm -> ErlangTerm
 unpackWeak (WeakErlangTerm t) = t

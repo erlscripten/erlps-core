@@ -1,3 +1,4 @@
+-- | Functions responsible for exception building and handling
 module Erlang.Exception
   ( tryCatchFinally
   , tryOfCatchFinally

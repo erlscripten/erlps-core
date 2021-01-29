@@ -34,7 +34,7 @@ import Node.Buffer (Buffer, toArray, fromArray)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | Type of an Erlang function. Needs to be uncurried in order
--- to support arbitrary arities and catch `badarity` errors properly
+-- | to support arbitrary arities and catch `badarity` errors properly
 type ErlangFun = Array ErlangTerm -> ErlangTerm
 
 -- | Data representing an Erlang Term
@@ -54,7 +54,7 @@ data ErlangTerm
 ---- INSTANCES ----
 
 -- | Converts an array to string with custom opener, delimiter, closer
--- and element display
+-- | and element display
 foreign import showArrayImplGeneral
   :: forall a. String -> String -> String -> (a -> String) -> Array a -> String
 

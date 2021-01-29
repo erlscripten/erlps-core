@@ -1,6 +1,6 @@
 -- | Module for handling binaries (implemented as nodejs buffers).
--- The stored values should be unsigned integers lesser than 256.
--- Binary size is restricted to fit in PureScript's Int range
+-- | The stored values should be unsigned integers lesser than 256.
+-- | Binary size is restricted to fit in PureScript's Int range
 module Erlang.Binary where
 
 import Prelude
@@ -41,7 +41,7 @@ buffer _ = EXC.badarg unit
 concat :: Array Buffer -> Buffer
 concat args = unsafePerformEffect $ Buffer.concat args
 
--- | Concatenates
+-- | Concatenates an Erlang list of buffers
 concatErl :: ErlangTerm -> ErlangTerm
 concatErl listTerm =
   case fromErl listTerm of
@@ -65,7 +65,7 @@ size :: Buffer -> ErlangTerm
 size = ErlangInt <<< DBI.fromInt <<< unsafePerformEffect <<< Buffer.size
 
 -- | Calculates size of an Erlang binary or throws `badarg` if
--- something else was provided
+-- | something else was provided
 packedSize :: ErlangTerm -> ErlangTerm
 packedSize (ErlangBinary b) = size b
 packedSize _ = EXC.badarg unit
@@ -164,15 +164,15 @@ decodeUnsignedLittle buf = unsafePerformEffect (Buffer.size buf >>= go buf (DBI.
            ((DBI.fromInt 256) * acc + DBI.fromInt (unsafeAt b (bufsize - 1)))
            (bufsize - 1)
 
--- | Encodes an integer into a buffer of a certain sizes. Overflows cause
--- "flip" of the value
+-- | Encodes an integer into a buffer of a given size. Overflows cause
+-- | "flip" of the value
 fromInt :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
 fromInt (ErlangInt n) (ErlangInt bsize) unit endian =
   fromIntBound n (DM.Just bsize) unit endian
 fromInt _ _ _ _ = EXC.badarg unit
 
--- | Encodes an integer into a buffer of an optional sizes. Overflows cause
--- "flip" of the value. The size is unpacked.
+-- | Encodes an integer into a buffer of an optionally given size. Overflows cause
+-- | "flip" of the value. The size is unpacked.
 fromIntBound :: DBI.BigInt -> DM.Maybe DBI.BigInt -> Int -> Endian -> Buffer
 fromIntBound n msize unit endian =
   let bufSize = map ((_ * DBI.fromInt unit) >>> (_ / DBI.fromInt 8)) msize
@@ -237,7 +237,7 @@ data SplitOpt = Global | Trim | TrimAll | Scope Int Int
 derive instance splitOptEq :: Eq SplitOpt
 
 -- | Splits buffer using given set of patterns into a list of binaries.
--- Implements binary:split from Erlang stdlib.
+-- | Implements binary:split from Erlang stdlib.
 split :: forall f. Foldable f
       => Buffer -> f Buffer -> f SplitOpt -> ErlangTerm
 split buf pats opts =

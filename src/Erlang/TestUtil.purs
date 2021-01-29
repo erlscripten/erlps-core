@@ -1,3 +1,4 @@
+-- | Common utilities for testing transpiled projects
 module Erlang.TestUtil where
 
 import Data.Show

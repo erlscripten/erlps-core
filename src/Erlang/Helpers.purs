@@ -1,3 +1,4 @@
+-- | Collection of helpers mainly used internally in transpiled modules
 module Erlang.Helpers
        ( falsifyErrors
        , flmap
@@ -32,7 +33,7 @@ flmap f list = unsafePartial $ erflat (ermap list ErlangEmptyList) ErlangEmptyLi
   erflat (ErlangCons (ErlangCons h t) rest) acc = erflat (ErlangCons t rest) (ErlangCons h acc)
 
 -- | Out of given collection of keys find a one that does not have associated
--- value in a map
+-- | value in a map
 findMissingKey :: ErlangTerm -> Array ErlangTerm -> DM.Maybe ErlangTerm
 findMissingKey (ErlangMap m) keys =
   DA.find (\key -> not (Map.member key m)) keys

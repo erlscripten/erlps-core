@@ -1,3 +1,5 @@
+-- | Utilities and helpers that are basic extensions of other independent
+-- | libraries. This module is unrelated to Erlang.
 module Erlang.Utils where
 
 import Data.String.CodePoints as DSCP

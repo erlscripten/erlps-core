@@ -348,6 +348,9 @@ instance bufferToErlang :: ToErlang Buffer where
 instance numberToErlang :: ToErlang Number where
   toErl = ErlangFloat
 
+instance unitToErlang :: ToErlang Unit where
+  toErl _ = ErlangTuple []
+
 ---- FromErlang class ----
 
 -- | Conversion from Erlang term

@@ -4,7 +4,6 @@
 module Erlang.Binary where
 
 import Prelude
-import Prelude as Prelude
 
 import Data.Array as DA
 import Data.BigInt as DBI
@@ -19,6 +18,7 @@ import Erlang.Type (ErlangTerm(..), fromErl, toErl)
 import Erlang.Utils as Util
 import Node.Buffer (Buffer)
 import Node.Buffer as Buffer
+import Prelude as Prelude
 
 data Endian = Big | Little
 data Sign   = Signed | Unsigned
@@ -189,6 +189,14 @@ fromIntBound n msize unit endian =
     case endian of
       Big -> big
       Little -> DL.reverse big
+
+fromInts :: ErlangTerm -> ErlangTerm -> Int -> Endian -> Buffer
+fromInts elist bsize unit endian
+  | DM.Just (l :: Array ErlangTerm) <- fromErl elist
+  = concat
+    $ map (\e -> fromInt e bsize unit endian)
+    $ l
+fromInts _ _ _ _ = EXC.badarg unit
 
 foreign import float32ToArray :: Number -> Array Int
 foreign import float64ToArray :: Number -> Array Int

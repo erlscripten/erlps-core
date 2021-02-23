@@ -7,6 +7,7 @@ You can edit this file as you like.
   [ "arraybuffer"
   , "bigints"
   , "console"
+  , "debug"
   , "effect"
   , "integers"
   , "lists"

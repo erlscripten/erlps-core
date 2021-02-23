@@ -4,7 +4,7 @@ module Erlang.Type
        , ErlangTerm(..)
        , strongEq, strongNEq, strongCmp, strongGeq, strongGt, strongLeq, strongLt
        , weakEq, weakNEq, weakCmp, weakGeq, weakGt, weakLeq, weakLt
-       , WeakErlangTerm
+       , WeakErlangTerm(..)
        , unpackWeak
        , class ToErlang, class FromErlang
        , toErl, fromErl
@@ -306,6 +306,8 @@ newtype WeakErlangTerm = WeakErlangTerm ErlangTerm
 unpackWeak :: WeakErlangTerm -> ErlangTerm
 unpackWeak (WeakErlangTerm t) = t
 
+instance showWeakErlangTerm :: Show WeakErlangTerm where
+  show (WeakErlangTerm e) = show e
 instance eqWeakErlangTerm :: Eq WeakErlangTerm where
   eq e1 e2 = weakEq (unpackWeak e1) (unpackWeak e2)
 instance ordWeakErlangTerm :: Ord WeakErlangTerm where

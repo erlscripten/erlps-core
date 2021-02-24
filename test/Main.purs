@@ -10,6 +10,7 @@ import Effect.Aff (launchAff_)
 import Data.BigInt as DBI
 import Data.Map as Map
 import Data.Maybe as DM
+import Data.Array as DA
 import Effect (Effect)
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
@@ -283,6 +284,8 @@ main =
             testExecOk (mkBInt "3003004243") BIF.erlang__phash__2 [bin [1,3,3,7], get2to32]
         it "erlang:phash(#{}, 1 bsl 32)." do
             testExecOk (mkBInt "1113425985") BIF.erlang__phash__2 [ErlangMap Map.empty, get2to32]
+        it "performance" do
+            testExecOk (mkBInt "3430193160") BIF.erlang__phash__2 [toErl (DA.replicate 1024 1337), get2to32]
 
     describe "Ensure loaded" do
       it "unsuccessful" do

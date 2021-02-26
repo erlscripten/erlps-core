@@ -946,10 +946,10 @@ erlang__op_unAppend args = EXC.badarity (ErlangFun 2 erlang__op_unAppend) args
 
 do_unappend :: ErlangTerm -> ErlangTerm -> ErlangTerm -> ErlangTerm
 do_unappend ErlangEmptyList ErlangEmptyList ErlangEmptyList = ErlangEmptyList
-do_unappend r@(ErlangCons _ _) ErlangEmptyList ErlangEmptyList = r
 do_unappend ErlangEmptyList ErlangEmptyList acc = lists__reverse__2 [acc, ErlangEmptyList]
-do_unappend (ErlangCons h t) ErlangEmptyList acc = do_unappend t ErlangEmptyList (ErlangCons h acc)
 do_unappend ErlangEmptyList (ErlangCons _ term) acc = do_unappend (lists__reverse__2 [acc, ErlangEmptyList]) term ErlangEmptyList
+do_unappend r@(ErlangCons _ _) ErlangEmptyList ErlangEmptyList = r
+do_unappend (ErlangCons h t) ErlangEmptyList acc = do_unappend t ErlangEmptyList (ErlangCons h acc)
 do_unappend (ErlangCons hl tl) r@(ErlangCons hr tr) acc =
       case erlang__op_exactEq [hl, hr] of
         ErlangAtom "true"  -> do_unappend (lists__reverse__2 [acc, tl]) tr ErlangEmptyList

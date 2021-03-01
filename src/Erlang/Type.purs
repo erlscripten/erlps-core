@@ -11,6 +11,7 @@ module Erlang.Type
        , nil, cons, tup, bin
        , isEList, isEInt, isENum, isEFloat, isEAtom, isEPID
        , isEBinary, isETuple, isEFun, isEFunA, isEMap, isEReference
+       , onElement
        ) where
 
 import Prelude
@@ -476,3 +477,11 @@ isEPID _ = false
 isEReference :: ErlangTerm -> Boolean
 isEReference (ErlangReference _) = true
 isEReference _ = false
+
+-- element(1, {a,b}) =:= a
+-- onElement (ErlangInt 1) (ErlangTuple [ErlangAtom "a", ErlangAtom "b"]) weakEq (ErlangAtom "a")
+onElement :: ErlangTerm -> ErlangTerm -> (ErlangTerm -> ErlangTerm -> Boolean) -> ErlangTerm -> Boolean
+onElement (ErlangInt bpos) (ErlangTuple array) cmp what
+  | DM.Just pos <- bigIntToInt bpos
+  , DM.Just res <- DA.index array (pos-1) = cmp res what
+onElement _ _ _ _ = false

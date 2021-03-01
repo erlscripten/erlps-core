@@ -1,7 +1,7 @@
 module Test.Main where
 
 import Erlang.TestUtil (err, exec, shouldEqualOk, testExecOk, unpackOk, testExecErr)
-import Erlang.Type (ErlangTerm(..), bin, nil, toErl)
+import Erlang.Type (ErlangTerm(..), bin, nil, toErl, onElement, weakEq, weakGt)
 import Erlang.Builtins as BIF
 import Erlang.Utils(runtimeError)
 
@@ -371,3 +371,11 @@ main =
     describe "iolist_to_iovec" do
         it "sample" do
             testExecOk ((toErl [bin [1,2,3,4]])) BIF.erlang__iolist_to_iovec__1 [toErl [1,2,3,4]]
+
+    describe "helpers" do
+        it "onElement" do
+            true `shouldEqual` onElement (toErl 1) (ErlangTuple [ErlangAtom "a", ErlangAtom "b"]) weakEq (ErlangAtom "a")
+            true `shouldEqual` onElement (toErl 2) (ErlangTuple [ErlangAtom "a", ErlangAtom "b"]) weakEq (ErlangAtom "b")
+            false `shouldEqual` onElement (toErl 3) (ErlangTuple [ErlangAtom "a", ErlangAtom "b"]) weakEq (ErlangAtom "b")
+            true `shouldEqual` onElement (toErl 1) (ErlangTuple [toErl 10]) weakGt (toErl 5)
+            false `shouldEqual` onElement (toErl 1) (ErlangTuple [toErl 5]) weakGt (toErl 10)

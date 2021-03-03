@@ -434,7 +434,7 @@ erlps__request__2 :: ErlangFun
 erlps__request__2 [(ErlangAtom "standard_io"), request_0] =
   let arg_1 = BIF.erlang__group_leader__0 []
   in erlps__request__2 [arg_1, request_0]
-erlps__request__2 [pid_0, request_1] | isEPid pid_0 =
+erlps__request__2 [pid_0, request_1] | isEPID pid_0 =
   let arg_3 = erlps__io_request__2 [pid_0, request_1]
   in erlps__execute_request__2 [pid_0, arg_3]
 erlps__request__2 [name_0, request_1] | isEAtom name_0 =
@@ -488,7 +488,7 @@ erlps__requests__2 :: ErlangFun
 erlps__requests__2 [(ErlangAtom "standard_io"), requests_0] =
   let arg_1 = BIF.erlang__group_leader__0 []
   in erlps__requests__2 [arg_1, requests_0]
-erlps__requests__2 [pid_0, requests_1] | isEPid pid_0 =
+erlps__requests__2 [pid_0, requests_1] | isEPID pid_0 =
   let matchExpr_6 = erlps__io_requests__2 [pid_0, requests_1]
   in
     case matchExpr_6 of

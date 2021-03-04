@@ -368,6 +368,10 @@ main =
         it "TCO 2" do
             testExecOk (bin $ DA.replicate 100000 65) BIF.erlang__iolist_to_binary__1 [toErl $ [bin $ DA.replicate 50000 65, bin $ DA.replicate 50000 65]]
 
+    describe "atom_to_binary" do
+        it "<<\"asdf\">> = erlang:atom_to_binary(asdf, unicode)." do
+            testExecOk (bin [97, 115, 100, 102]) BIF.erlang__atom_to_binary__2 [ErlangAtom "asdf", ErlangAtom "unicode"]
+
     describe "iolist_size" do
         it "sample" do
             testExecOk (toErl 4) BIF.erlang__iolist_size__1 [toErl [1,2,3,4]]

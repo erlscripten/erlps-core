@@ -1342,7 +1342,7 @@ erlang__float_to_binary__1 [_] = EXC.badarg unit
 erlang__float_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__float_to_binary__1) args
 
 erlang__atom_to_binary__2 :: ErlangFun
-erlang__atom_to_binary__2 args = unimplemented "erlang__atom_to_binary__2"
+erlang__atom_to_binary__2 [ErlangAtom str, _] = erlang__iolist_to_binary__1 [toErl str]
 erlang__atom_to_binary__2 [_,_] = EXC.badarg unit
 erlang__atom_to_binary__2 args = EXC.badarity (ErlangFun 2 erlang__atom_to_binary__2) args
 

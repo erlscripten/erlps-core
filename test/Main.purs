@@ -363,6 +363,10 @@ main =
             bin [255] `shouldEqualOk` r1
             r2 <- exec BIF.erlang__iolist_to_binary__1 [toErl [256]]
             err `shouldEqual` r2
+        it "TCO 1" do
+            testExecOk (bin $ DA.replicate 100000 65) BIF.erlang__iolist_to_binary__1 [toErl $ DA.replicate 100000 65]
+        it "TCO 2" do
+            testExecOk (bin $ DA.replicate 100000 65) BIF.erlang__iolist_to_binary__1 [toErl $ [bin $ DA.replicate 50000 65, bin $ DA.replicate 50000 65]]
 
     describe "iolist_size" do
         it "sample" do

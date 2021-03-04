@@ -328,9 +328,9 @@ instance weakErlangTermToErlang :: ToErlang WeakErlangTerm where
   toErl = unpackWeak
 
 instance foldableToErlang :: (Foldable f, ToErlang e) => ToErlang (f e) where
-  toErl f = go (DL.fromFoldable f) where
-    go DL.Nil = ErlangEmptyList
-    go (DL.Cons h t) = ErlangCons (toErl h) (go t)
+  toErl f = go (DL.reverse $ DL.fromFoldable f) ErlangEmptyList where
+    go DL.Nil acc = acc
+    go (DL.Cons h t) acc = go t (ErlangCons (toErl h) acc)
 
 instance boolToErlang :: ToErlang Boolean where
   toErl b = ErlangAtom (if b then "true" else "false")

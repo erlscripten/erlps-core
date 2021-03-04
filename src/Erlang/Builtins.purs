@@ -1206,12 +1206,11 @@ erlang__iolist_to_binary__1 [el] | isEList el = ErlangBinary
           else EXC.badarg unit
       flatInts acc (ErlangCons h t) =
         if isEList t || isEBinary t
-        then flatInts (flatInts' acc h) t
+        then flatInts (flatInts acc h) t
         else EXC.badarg unit
       flatInts acc ErlangEmptyList = acc
       flatInts _ _ = EXC.badarg unit
 
-      flatInts' x = flatInts x
 erlang__iolist_to_binary__1 [_] = EXC.badarg unit
 erlang__iolist_to_binary__1 args = EXC.badarity (ErlangFun 1 erlang__iolist_to_binary__1) args
 

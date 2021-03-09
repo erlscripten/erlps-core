@@ -1006,8 +1006,12 @@ erlang__bxor__2 [_,_] = EXC.badarg unit
 erlang__bxor__2 args = EXC.badarity (ErlangFun 2 erlang__bxor__2) args
 
 erlang__or__2 :: ErlangFun
-erlang__or__2 args = unimplemented "erlang__or__2"
-erlang__or__2 [_,_] = EXC.badarg unit
+erlang__or__2 :: ErlangFun
+erlang__or__2 [ErlangAtom "true",  ErlangAtom "true"]  = toErl true
+erlang__or__2 [ErlangAtom "false", ErlangAtom "true"]  = toErl true
+erlang__or__2 [ErlangAtom "true",  ErlangAtom "false"] = toErl true
+erlang__or__2 [ErlangAtom "false", ErlangAtom "false"] = toErl false
+erlang__or__2 [_, _] = EXC.badarg unit
 erlang__or__2 args = EXC.badarity (ErlangFun 2 erlang__or__2) args
 
 erlang__bsr__2 :: ErlangFun
@@ -1560,8 +1564,12 @@ erlang__make_tuple__2 [_,_] = EXC.badarg unit
 erlang__make_tuple__2 args = EXC.badarity (ErlangFun 2 erlang__make_tuple__2) args
 
 erlang__and__2 :: ErlangFun
-erlang__and__2 args = unimplemented "erlang__and__2"
-erlang__and__2 [_,_] = EXC.badarg unit
+erlang__and__2 :: ErlangFun
+erlang__and__2 [ErlangAtom "true",  ErlangAtom "true"]  = toErl true
+erlang__and__2 [ErlangAtom "false", ErlangAtom "true"]  = toErl false
+erlang__and__2 [ErlangAtom "true",  ErlangAtom "false"] = toErl false
+erlang__and__2 [ErlangAtom "false", ErlangAtom "false"] = toErl false
+erlang__and__2 [_, _] = EXC.badarg unit
 erlang__and__2 args = EXC.badarity (ErlangFun 2 erlang__and__2) args
 
 foreign import do_is_process_alive_1 :: Int -> Boolean

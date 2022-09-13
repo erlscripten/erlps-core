@@ -1,8 +1,8 @@
 "use strict";
 
-require("core-js/modules/es.function.name");
+import "core-js/modules/es.function.name.js";
 
-exports.do_run_erlang = function (fun) {
+export const do_run_erlang = function (fun) {
   return function (args) {
     if (fun.constructor.name === 'GeneratorFunction') {
       // Ok we have a generator :)

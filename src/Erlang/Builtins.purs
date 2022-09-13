@@ -393,7 +393,7 @@ module Erlang.Builtins
        ) where
 
 import Erlang.Type
-import Math
+import Data.Number
 import Prelude
 
 import Data.Array as DA
@@ -1664,7 +1664,7 @@ make_hash :: ErlangTerm -> DU.UInt -> DU.UInt
 make_hash (ErlangInt n) hash =
     let
         { isNegative: isNeg, value: bytes } = DBI.digitsInBase 256 n
-        h1 = DA.foldl (\acc el -> acc*c_FUNNY_NUMBER2 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
+        h1 = foldl (\acc el -> acc*c_FUNNY_NUMBER2 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
     in
         case isNeg of
             true -> h1 * c_FUNNY_NUMBER4
@@ -1672,13 +1672,13 @@ make_hash (ErlangInt n) hash =
 make_hash (ErlangPID n) hash =
     let
         { isNegative: _, value: bytes } = DBI.digitsInBase 256 (DBI.fromInt n)
-        h1 = DA.foldl (\acc el -> acc*c_FUNNY_NUMBER5 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
+        h1 = foldl (\acc el -> acc*c_FUNNY_NUMBER5 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
     in
         h1 * c_FUNNY_NUMBER6
 make_hash (ErlangReference n) hash =
     let
         { isNegative: _, value: bytes } = DBI.digitsInBase 256 (DBI.fromInt n)
-        h1 = DA.foldl (\acc el -> acc*c_FUNNY_NUMBER9 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
+        h1 = foldl (\acc el -> acc*c_FUNNY_NUMBER9 + (DU.fromInt el)) hash (DAN.reverse $ pad_arr bytes)
     in
         h1 * c_FUNNY_NUMBER10
 

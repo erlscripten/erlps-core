@@ -1,7 +1,7 @@
 "use strict";
 
 // https://github.com/elixirscript/erlang-types/blob/master/src/erlang-types/bit_string.ts
-exports.float32ToArray = function(f) {
+export const float32ToArray = function(f) {
     var bytes = [];
 
     var buf = new ArrayBuffer(4);
@@ -17,7 +17,7 @@ exports.float32ToArray = function(f) {
     return bytes;
 };
 
-exports.float64ToArray = function(f) {
+export const float64ToArray = function(f) {
     var bytes = [];
 
     var buf = new ArrayBuffer(8);
@@ -39,10 +39,10 @@ exports.float64ToArray = function(f) {
     return bytes;
 };
 
-exports.arrayToFloat32 = function(arr) {
+export const arrayToFloat32 = function(arr) {
     return Buffer.from(arr).readFloatBE(0);
 };
 
-exports.arrayToFloat64 = function(arr) {
+export const arrayToFloat64 = function(arr) {
     return Buffer.from(arr).readDoubleBE(0);
 };

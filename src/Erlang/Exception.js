@@ -1,15 +1,15 @@
 "use strict";
 
-exports.raise = function(ex) {
+export const raise = function(ex) {
     throw ex;
 };
 
-exports.getStack = function() {
+export const getStack = function() {
     return new Error().stack;
 };
 
 
-let tryCatch =
+export const tryCatch =
     function(exprC) {
         return function(handler) {
             try {
@@ -23,9 +23,8 @@ let tryCatch =
             }
         };
     };
-exports.tryCatch = tryCatch;
 
-let tryOfCatch =
+export const tryOfCatch =
     function(exprC) {
         return function(ofHandler) {
             return function(handler) {
@@ -42,10 +41,9 @@ let tryOfCatch =
             };
         };
     };
-exports.tryOfCatch = tryOfCatch;
 
 
-exports.tryCatchFinally =
+export const tryCatchFinally =
     function(exprC) {
         return function(handler) {
             return function(afterC) {
@@ -57,7 +55,7 @@ exports.tryCatchFinally =
         };
     };
 
-exports.tryOfCatchFinally =
+export const tryOfCatchFinally =
     function(exprC) {
         return function(ofHandler) {
             return function(handler) {

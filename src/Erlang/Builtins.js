@@ -1,88 +1,88 @@
 "use strict";
 
-require("core-js/modules/es.symbol");
+import "core-js/modules/es.symbol.js";
 
-require("core-js/modules/es.symbol.description");
+import "core-js/modules/es.symbol.description.js";
 
-require("core-js/modules/es.array.from");
+import "core-js/modules/es.array.from.js";
 
-require("core-js/modules/es.array.is-array");
+import "core-js/modules/es.array.is-array.js";
 
-require("core-js/modules/es.array.iterator");
+import "core-js/modules/es.array.iterator.js";
 
-require("core-js/modules/es.array.join");
+import "core-js/modules/es.array.join.js";
 
-require("core-js/modules/es.array.map");
+import "core-js/modules/es.array.map.js";
 
-require("core-js/modules/es.array.slice");
+import "core-js/modules/es.array.slice.js";
 
-require("core-js/modules/es.array.splice");
+import "core-js/modules/es.array.splice.js";
 
-require("core-js/modules/es.date.now");
+import "core-js/modules/es.date.now.js";
 
-require("core-js/modules/es.date.to-string");
+import "core-js/modules/es.date.to-string.js";
 
-require("core-js/modules/es.function.bind");
+import "core-js/modules/es.function.bind.js";
 
-require("core-js/modules/es.function.name");
+import "core-js/modules/es.function.name.js";
 
-require("core-js/modules/es.map");
+import "core-js/modules/es.map.js";
 
-require("core-js/modules/es.math.acosh");
+import "core-js/modules/es.math.acosh.js";
 
-require("core-js/modules/es.math.asinh");
+import "core-js/modules/es.math.asinh.js";
 
-require("core-js/modules/es.math.atanh");
+import "core-js/modules/es.math.atanh.js";
 
-require("core-js/modules/es.math.cbrt");
+import "core-js/modules/es.math.cbrt.js";
 
-require("core-js/modules/es.math.clz32");
+import "core-js/modules/es.math.clz32.js";
 
-require("core-js/modules/es.math.cosh");
+import "core-js/modules/es.math.cosh.js";
 
-require("core-js/modules/es.math.expm1");
+import "core-js/modules/es.math.expm1.js";
 
-require("core-js/modules/es.math.hypot");
+import "core-js/modules/es.math.hypot.js";
 
-require("core-js/modules/es.math.log10");
+import "core-js/modules/es.math.log10.js";
 
-require("core-js/modules/es.math.log1p");
+import "core-js/modules/es.math.log1p.js";
 
-require("core-js/modules/es.math.log2");
+import "core-js/modules/es.math.log2.js";
 
-require("core-js/modules/es.math.sign");
+import "core-js/modules/es.math.sign.js";
 
-require("core-js/modules/es.math.sinh");
+import "core-js/modules/es.math.sinh.js";
 
-require("core-js/modules/es.math.tanh");
+import "core-js/modules/es.math.tanh.js";
 
-require("core-js/modules/es.number.constructor");
+import "core-js/modules/es.number.constructor.js";
 
-require("core-js/modules/es.number.is-integer");
+import "core-js/modules/es.number.is-integer.js";
 
-require("core-js/modules/es.object.define-property");
+import "core-js/modules/es.object.define-property.js";
 
-require("core-js/modules/es.object.keys");
+import "core-js/modules/es.object.keys.js";
 
-require("core-js/modules/es.object.to-string");
+import "core-js/modules/es.object.to-string.js";
 
-require("core-js/modules/es.regexp.exec");
+import "core-js/modules/es.regexp.exec.js";
 
-require("core-js/modules/es.regexp.flags");
+import "core-js/modules/es.regexp.flags.js";
 
-require("core-js/modules/es.set");
+import "core-js/modules/es.set.js";
 
-require("core-js/modules/es.string.iterator");
+import "core-js/modules/es.string.iterator.js";
 
-require("core-js/modules/es.string.split");
+import "core-js/modules/es.string.split.js";
 
-require("core-js/modules/es.string.link");
+import "core-js/modules/es.string.link.js";
 
-require("core-js/modules/web.dom-collections.iterator");
+import "core-js/modules/web.dom-collections.iterator.js";
 
-require("core-js/modules/web.timers");
+import "core-js/modules/web.timers.js";
 
-require("regenerator-runtime/runtime");
+import "regenerator-runtime/runtime.js";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -1785,31 +1785,31 @@ var RUNTIME = function () {
   };
 }();
 
-exports.do_ffi_remote_fun_call = RUNTIME.do_ffi_remote_fun_call;
-exports.do_ffi_ensure_loaded = RUNTIME.do_ffi_ensure_loaded;
-exports.system = RUNTIME.system;
-exports.do_make_ref_0 = RUNTIME.do_make_ref_0;
-exports.do_receive_2 = RUNTIME.do_receive_2;
-exports.do_send_2 = RUNTIME.do_send_2;
-exports.do_self_0 = RUNTIME.do_self_0;
-exports.do_is_process_alive_1 = RUNTIME.do_is_process_alive_1;
-exports.do_spawn_1 = RUNTIME.do_spawn_1;
-exports.do_apply_4 = RUNTIME.do_apply_4;
-exports.do_put_2 = RUNTIME.do_put_2;
-exports.do_get_1 = RUNTIME.do_get_1;
-exports.do_get_0 = RUNTIME.do_get_0;
-exports.do_get_keys_0 = RUNTIME.do_get_keys_0;
-exports.do_get_keys_1 = RUNTIME.do_get_keys_1;
-exports.do_erase_0 = RUNTIME.do_erase_0;
-exports.do_erase_1 = RUNTIME.do_erase_1;
-exports.do_function_exported_3 = RUNTIME.do_function_exported_3; // Missing math functions
+export const do_ffi_remote_fun_call = RUNTIME.do_ffi_remote_fun_call;
+export const do_ffi_ensure_loaded = RUNTIME.do_ffi_ensure_loaded;
+export const system = RUNTIME.system;
+export const do_make_ref_0 = RUNTIME.do_make_ref_0;
+export const do_receive_2 = RUNTIME.do_receive_2;
+export const do_send_2 = RUNTIME.do_send_2;
+export const do_self_0 = RUNTIME.do_self_0;
+export const do_is_process_alive_1 = RUNTIME.do_is_process_alive_1;
+export const do_spawn_1 = RUNTIME.do_spawn_1;
+export const do_apply_4 = RUNTIME.do_apply_4;
+export const do_put_2 = RUNTIME.do_put_2;
+export const do_get_1 = RUNTIME.do_get_1;
+export const do_get_0 = RUNTIME.do_get_0;
+export const do_get_keys_0 = RUNTIME.do_get_keys_0;
+export const do_get_keys_1 = RUNTIME.do_get_keys_1;
+export const do_erase_0 = RUNTIME.do_erase_0;
+export const do_erase_1 = RUNTIME.do_erase_1;
+export const do_function_exported_3 = RUNTIME.do_function_exported_3; // Missing math functions
 //--------------------------------------------------------------------------------
 
-exports.acosh = Math.acosh || function (x) {
+export const acosh = Math.acosh || function (x) {
   return Math.log(x + Math.sqrt(x * x - 1));
 };
 
-exports.asinh = Math.asinh || function (x) {
+export const asinh = Math.asinh || function (x) {
   if (x === -Infinity) {
     return x;
   } else {
@@ -1817,11 +1817,11 @@ exports.asinh = Math.asinh || function (x) {
   }
 };
 
-exports.atanh = Math.atanh || function (x) {
+export const atanh = Math.atanh || function (x) {
   return Math.log((1 + x) / (1 - x)) / 2;
 };
 
-exports.cbrt = Math.cbrt || function (x) {
+export const cbrt = Math.cbrt || function (x) {
   if (x === 0) {
     return x; // +0 or -0
   } else if (x < 0) {
@@ -1831,7 +1831,7 @@ exports.cbrt = Math.cbrt || function (x) {
   }
 };
 
-exports.clz32 = Math.clz32 || function (x) {
+export const clz32 = Math.clz32 || function (x) {
   if (x === 0) {
     return 32;
   }
@@ -1839,15 +1839,15 @@ exports.clz32 = Math.clz32 || function (x) {
   return 31 - Math.floor(Math.log(x >>> 0) * Math.LOG2E);
 };
 
-exports.cosh = Math.cosh || function (x) {
+export const cosh = Math.cosh || function (x) {
   return (Math.exp(x) + Math.exp(-x)) / 2;
 };
 
-exports.expm1 = Math.expm1 || function (x) {
+export const expm1 = Math.expm1 || function (x) {
   return Math.exp(x) - 1;
 };
 
-exports.hypot = Math.hypot ? function (x) {
+export const hypot = Math.hypot ? function (x) {
   return function (y) {
     return Math.hypot(x, y);
   };
@@ -1856,7 +1856,7 @@ exports.hypot = Math.hypot ? function (x) {
     return Math.sqrt(x * x + y * y);
   };
 };
-exports.hypot3 = Math.hypot ? function (x) {
+export const hypot3 = Math.hypot ? function (x) {
   return function (y) {
     return function (z) {
       return Math.hypot(x, y, z);
@@ -1870,19 +1870,19 @@ exports.hypot3 = Math.hypot ? function (x) {
   };
 };
 
-exports.log1p = Math.log1p || function (x) {
+export const log1p = Math.log1p || function (x) {
   return Math.log(x + 1);
 };
 
-exports.log10 = Math.log10 || function (x) {
+export const log10 = Math.log10 || function (x) {
   return Math.log(x) * Math.LOG10E;
 };
 
-exports.log2 = Math.log2 || function (x) {
+export const log2 = Math.log2 || function (x) {
   return Math.log(x) * Math.LOG2E;
 };
 
-exports.sign = Math.sign || function (x) {
+export const sign = Math.sign || function (x) {
   if (x > 0) {
     return 1;
   } else if (x < 0) {
@@ -1892,11 +1892,11 @@ exports.sign = Math.sign || function (x) {
   }
 };
 
-exports.sinh = Math.sinh || function (x) {
+export const sinh = Math.sinh || function (x) {
   return (Math.exp(x) - Math.exp(-x)) / 2;
 };
 
-exports.tanh = Math.tanh || function (x) {
+export const tanh = Math.tanh || function (x) {
   var ex = Math.exp(2 * x);
 
   if (ex === Infinity) {

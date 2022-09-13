@@ -1,6 +1,6 @@
 "use static";
 
-exports.showArrayImplGeneral =
+export const showArrayImplGeneral =
     function (left) {
 	return function(right) {
 	    return function(inter) {

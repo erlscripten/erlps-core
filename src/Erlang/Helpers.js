@@ -1,6 +1,6 @@
 "use strict";
 
-exports.falsifyErrorsImpl =
+export const falsifyErrorsImpl =
     function(false_val) {
         return function(action) {
             try {

@@ -368,6 +368,7 @@ module Erlang.Builtins
        , erlang__spawn_monitor__1
        , erlang__system_profile__2
        , erlang__error__1
+       , erlang__error__3
        , erlang__delay_trap__2
        , erlang__spawn_link__4
        , erlang__memory__0
@@ -2589,6 +2590,11 @@ erlang__error__1 :: ErlangFun
 erlang__error__1 [arg] = EXC.error arg
 erlang__error__1 [_] = EXC.badarg unit
 erlang__error__1 args = EXC.badarity (ErlangFun 1 erlang__error__1) args
+
+erlang__error__3 :: ErlangFun
+erlang__error__3 [arg,_,_] = EXC.error arg
+erlang__error__3 [_,_,_] = EXC.badarg unit
+erlang__error__3 args = EXC.badarity (ErlangFun 1 erlang__error__1) args
 
 erlang__delay_trap__2 :: ErlangFun
 erlang__delay_trap__2 args = unimplemented "erlang__delay_trap__2"

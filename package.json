@@ -3,17 +3,12 @@
   "version": "1.0.0",
   "description": "ERTS emulation in purescript",
   "dependencies": {
-    "babel-cli": "^6.26.0",
     "big-integer": "^1.6.48",
     "core-js": "^3.7.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.12.8",
-    "@babel/core": "^7.12.9",
-    "@babel/preset-env": "^7.12.7"
   },
   "scripts": {
-    "babel": "babel es6/ffi_es6_builtins.js > src/Erlang/Builtins.js; babel es6/ffi_es6_invoke.js > src/Erlang/Invoke.js",
     "test": "spago test"
   },
   "repository": {
